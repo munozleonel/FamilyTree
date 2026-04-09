@@ -19,11 +19,9 @@
     --line-active: #5a3a20;
     --card-bg: #fffdf8;
     --card-shadow: 0 2px 12px rgba(44,36,22,0.10);
-    --grey-text: #b8b0a5;
+    --grey-text: #b0a898;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     background: var(--bg);
     font-family: 'Lato', sans-serif;
@@ -32,187 +30,156 @@
     overflow-x: auto;
   }
 
+  /* ── HEADER ── */
   header {
     text-align: center;
-    padding: 24px 20px 14px;
+    padding: 22px 20px 14px;
     background: var(--bg2);
     border-bottom: 1.5px solid #d6cfc4;
-    position: sticky;
-    top: 0;
-    z-index: 200;
+    position: sticky; top: 0; z-index: 300;
   }
-
-  header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.85rem;
-    font-weight: 700;
-    color: var(--ink);
-  }
-
-  header p {
-    font-size: 0.72rem;
-    color: var(--ink-light);
-    margin-top: 3px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .hint {
-    font-size: 0.72rem;
-    color: var(--ink-light);
-    margin-top: 5px;
-    font-style: italic;
-  }
-
+  header h1 { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; color:var(--ink); }
+  header p  { font-size:0.71rem; color:var(--ink-light); margin-top:3px; letter-spacing:.1em; text-transform:uppercase; }
+  .hint     { font-size:0.70rem; color:var(--ink-light); margin-top:5px; font-style:italic; }
   #deselect-btn {
-    margin-top: 7px;
-    display: none;
-    background: var(--ink);
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    padding: 5px 16px;
-    font-size: 0.72rem;
-    cursor: pointer;
-    font-family: 'Lato', sans-serif;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    transition: background 0.2s;
+    margin-top:7px; display:none;
+    background:var(--ink); color:#fff; border:none; border-radius:20px;
+    padding:5px 16px; font-size:.71rem; cursor:pointer;
+    font-family:'Lato',sans-serif; letter-spacing:.08em; text-transform:uppercase;
+    transition:background .2s;
   }
-  #deselect-btn:hover { background: #5a3a20; }
+  #deselect-btn:hover { background:#5a3a20; }
 
-  #tree-container {
-    padding: 40px 60px 100px;
-    min-width: max-content;
-  }
+  /* ── TREE ── */
+  #tree-container { padding:40px 60px 100px; min-width:max-content; }
+  #tree-wrapper   { position:relative; display:inline-block; min-width:100%; }
+  #lines-svg      { position:absolute; top:0; left:0; pointer-events:none; z-index:1; overflow:visible; }
 
-  #tree-wrapper {
-    position: relative;
-    display: inline-block;
-    min-width: 100%;
-  }
-
-  #lines-svg {
-    position: absolute;
-    top: 0; left: 0;
-    pointer-events: none;
-    z-index: 1;
-    overflow: visible;
-  }
-
-  .gen-block {
-    margin-bottom: 80px;
-    position: relative;
-    z-index: 2;
-  }
-
+  .gen-block { margin-bottom:80px; position:relative; z-index:2; }
   .generation-label {
-    font-family: 'Playfair Display', serif;
-    font-size: 0.70rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--ink-light);
-    margin-bottom: 14px;
-    padding-left: 10px;
-    border-left: 3px solid #c8bfb0;
+    font-family:'Playfair Display',serif; font-size:.69rem;
+    letter-spacing:.18em; text-transform:uppercase;
+    color:var(--ink-light); margin-bottom:14px;
+    padding-left:10px; border-left:3px solid #c8bfb0;
   }
+  .generation-row { display:flex; flex-direction:row; align-items:flex-start; flex-wrap:nowrap; }
+  .couple-unit    { display:flex; flex-direction:row; align-items:flex-start; }
+  .unit-spacer    { width:26px; flex-shrink:0; }
 
-  .generation-row {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    flex-wrap: nowrap;
-    gap: 0;
-  }
-
-  .couple-unit {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    position: relative;
-  }
-
-  .unit-spacer { width: 28px; flex-shrink: 0; }
-
+  /* ── CARD ── */
   .person-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 86px;
-    cursor: pointer;
-    padding: 10px 5px 8px;
-    border-radius: 14px;
-    background: var(--card-bg);
-    box-shadow: var(--card-shadow);
-    border: 2px solid transparent;
-    transition: box-shadow 0.2s, border-color 0.2s, opacity 0.3s, filter 0.3s, transform 0.15s;
-    position: relative;
-    margin: 0 4px;
-    user-select: none;
+    display:flex; flex-direction:column; align-items:center;
+    width:88px; cursor:pointer;
+    padding:9px 5px 8px; border-radius:14px;
+    background:var(--card-bg); box-shadow:var(--card-shadow);
+    border:2px solid transparent;
+    transition:box-shadow .2s, border-color .2s, opacity .3s, filter .3s, transform .15s;
+    position:relative; margin:0 4px; user-select:none;
   }
+  .person-card:hover                { box-shadow:0 4px 20px rgba(44,36,22,.18); transform:translateY(-2px); }
+  .person-card.greyed               { opacity:.16; filter:grayscale(.8); pointer-events:none; }
+  .person-card.selected-lineage     { opacity:1; filter:none; }
+  .person-card.selected             { border-color:var(--ink); box-shadow:0 0 0 3px rgba(90,58,32,.2),0 6px 24px rgba(90,58,32,.2); transform:translateY(-2px); }
 
-  .person-card:hover {
-    box-shadow: 0 4px 20px rgba(44,36,22,0.18);
-    transform: translateY(-2px);
-  }
-
-  .person-card.greyed {
-    opacity: 0.18;
-    filter: grayscale(0.8);
-    pointer-events: none;
-  }
-
-  .person-card.selected-lineage { opacity: 1; filter: none; }
-
-  .person-card.selected {
-    border-color: var(--ink);
-    box-shadow: 0 0 0 3px rgba(90,58,32,0.2), 0 6px 24px rgba(90,58,32,0.2);
-    transform: translateY(-2px);
-  }
-
+  /* ── ICON ── */
   .icon-wrap {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 6px;
-    flex-shrink: 0;
+    width:42px; height:42px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px; flex-shrink:0; position:relative; overflow:hidden;
+    cursor:pointer;
   }
+  .icon-male   { background:var(--male-light); }
+  .icon-female { background:var(--female-light); }
+  .icon-male   svg { fill:var(--male); }
+  .icon-female svg { fill:var(--female); }
+  .icon-wrap .photo-img {
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; border-radius:50%;
+  }
+  .person-card.greyed .icon-wrap { background:#e4e0db !important; }
+  .person-card.greyed .icon-wrap svg { fill:#b8b0a5 !important; }
 
-  .icon-male { background: var(--male-light); }
-  .icon-female { background: var(--female-light); }
-  .icon-male svg { fill: var(--male); }
-  .icon-female svg { fill: var(--female); }
-  .person-card.greyed .icon-wrap { background: #e4e0db !important; }
-  .person-card.greyed .icon-wrap svg { fill: #b8b0a5 !important; }
-
+  /* ── NAME / DOB ── */
   .person-name {
-    font-size: 0.61rem;
-    font-weight: 700;
-    text-align: center;
-    line-height: 1.25;
-    color: var(--ink);
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    margin-bottom: 3px;
-    min-height: 20px;
+    font-size:.60rem; font-weight:700; text-align:center; line-height:1.25;
+    color:var(--ink); letter-spacing:.02em; text-transform:uppercase;
+    margin-bottom:3px; min-height:20px;
   }
-  .person-surname {
-    font-weight: 300;
-    font-size: 0.55rem;
-    display: block;
-  }
-  .person-card.greyed .person-name { color: var(--grey-text); }
+  .person-surname { font-weight:300; font-size:.54rem; display:block; }
+  .person-card.greyed .person-name { color:var(--grey-text); }
 
   .person-dob {
-    font-size: 0.55rem;
-    color: var(--ink-light);
-    text-align: center;
-    letter-spacing: 0.02em;
-    min-height: 12px;
+    font-size:.54rem; color:var(--ink-light); text-align:center;
+    letter-spacing:.02em; min-height:12px; cursor:context-menu;
+    border-radius:4px; padding:1px 4px;
+    transition:background .15s;
   }
-  .person-card.greyed .person-dob { color: var(--grey-text); }
+  .person-dob:hover { background:rgba(90,58,32,.08); }
+  .person-card.greyed .person-dob { color:var(--grey-text); }
+
+  /* ── CONTEXT MENU ── */
+  .ctx-menu {
+    position:fixed; z-index:9999;
+    background:#fffdf8; border:1px solid #d6cfc4;
+    border-radius:10px; box-shadow:0 8px 32px rgba(44,36,22,.18);
+    padding:6px 0; min-width:170px;
+    font-size:.78rem; font-family:'Lato',sans-serif;
+    animation:menuFade .12s ease;
+  }
+  @keyframes menuFade { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+  .ctx-item {
+    padding:8px 16px; cursor:pointer; color:var(--ink);
+    display:flex; align-items:center; gap:8px;
+    transition:background .1s;
+  }
+  .ctx-item:hover { background:#f0e8dc; }
+  .ctx-item svg   { width:14px; height:14px; fill:var(--ink-light); flex-shrink:0; }
+  .ctx-sep        { height:1px; background:#e8e0d4; margin:4px 0; }
+
+  /* ── MODAL (DOB edit) ── */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(44,36,22,.35);
+    z-index:9998; display:flex; align-items:center; justify-content:center;
+    animation:fadeIn .15s ease;
+  }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .modal-box {
+    background:var(--card-bg); border-radius:18px;
+    box-shadow:0 16px 60px rgba(44,36,22,.22);
+    padding:28px 32px 24px; min-width:300px; max-width:360px;
+    font-family:'Lato',sans-serif;
+  }
+  .modal-box h3 { font-family:'Playfair Display',serif; font-size:1.1rem; margin-bottom:16px; color:var(--ink); }
+  .modal-box label { font-size:.75rem; color:var(--ink-light); text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:5px; }
+  .modal-box input[type="date"] {
+    width:100%; padding:9px 12px; border:1.5px solid #d6cfc4;
+    border-radius:9px; font-size:.88rem; font-family:'Lato',sans-serif;
+    color:var(--ink); background:#fff; outline:none;
+    transition:border-color .2s;
+  }
+  .modal-box input[type="date"]:focus { border-color:#8a7a6a; }
+  .modal-actions { display:flex; gap:10px; margin-top:20px; justify-content:flex-end; }
+  .btn-cancel {
+    padding:7px 18px; border:1.5px solid #d6cfc4; border-radius:20px;
+    background:transparent; cursor:pointer; font-size:.75rem;
+    font-family:'Lato',sans-serif; color:var(--ink-light);
+    transition:background .15s;
+  }
+  .btn-cancel:hover { background:#f0e8dc; }
+  .btn-save {
+    padding:7px 20px; border:none; border-radius:20px;
+    background:var(--ink); color:#fff; cursor:pointer;
+    font-size:.75rem; font-family:'Lato',sans-serif;
+    letter-spacing:.06em; transition:background .15s;
+  }
+  .btn-save:hover { background:#5a3a20; }
+  .btn-clear {
+    padding:7px 16px; border:1.5px solid #e0aaaa; border-radius:20px;
+    background:transparent; cursor:pointer; font-size:.75rem;
+    font-family:'Lato',sans-serif; color:#c06060;
+    transition:background .15s; margin-right:auto;
+  }
+  .btn-clear:hover { background:#fdf0f0; }
 </style>
 </head>
 <body>
@@ -220,7 +187,7 @@
 <header>
   <h1>Family Tree</h1>
   <p>Munoz &middot; Delos Reyes &middot; Miranda Panlilio &middot; Related Families</p>
-  <div class="hint">Click any person to highlight their lineage</div>
+  <div class="hint">Click to highlight lineage &nbsp;·&nbsp; Right-click icon to add photo &nbsp;·&nbsp; Right-click date to edit DOB</div>
   <button id="deselect-btn" onclick="deselectAll()">✕ Clear Selection</button>
 </header>
 
@@ -231,81 +198,99 @@
   </div>
 </div>
 
+<!-- Context Menu -->
+<div id="ctx-menu" class="ctx-menu" style="display:none"></div>
+
+<!-- DOB Modal -->
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h3 id="modal-title">Edit Date of Birth</h3>
+    <label>Date of Birth</label>
+    <input type="date" id="modal-date-input">
+    <div class="modal-actions">
+      <button class="btn-clear" onclick="clearDob()">Clear</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveDob()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden file input for photo upload -->
+<input type="file" id="photo-file-input" accept="image/*" style="display:none">
+
 <script>
-// ─── PEOPLE DATA (from updated xlsx) ─────────────────────────────────────────
+// ─── DATA ─────────────────────────────────────────────────────────────────────
 const people = {
-  1:  { id:1,  first:'LEONEL',       last:'MUNOZ',             gender:'M', dob:'1983-04-05', spouse:[2],    father:6,   mother:5   },
-  2:  { id:2,  first:'KATHERINE',    last:'MUNOZ',             gender:'F', dob:'1984-06-13', spouse:[1],    father:12,  mother:13  },
-  3:  { id:3,  first:'ISLA HOPE',    last:'MUNOZ',             gender:'F', dob:'2015-01-23', spouse:[],     father:1,   mother:2   },
-  4:  { id:4,  first:'MAISY GRACE',  last:'MUNOZ',             gender:'F', dob:'2016-09-19', spouse:[],     father:1,   mother:2   },
-  5:  { id:5,  first:'ELENA',        last:'MUNOZ',             gender:'F', dob:'1956-05-18', spouse:[6],    father:null,mother:25  },
-  6:  { id:6,  first:'MARIO',        last:'MUNOZ',             gender:'M', dob:'1954-10-18', spouse:[5],    father:53,  mother:43  },
-  7:  { id:7,  first:'JOSEPH',       last:'MUNOZ',             gender:'M', dob:'1979-08-16', spouse:[8],    father:6,   mother:5   },
-  8:  { id:8,  first:'JAYA',         last:'YOON',              gender:'F', dob:null,         spouse:[7],    father:null,mother:null},
-  9:  { id:9,  first:'CLAIRE',       last:'MUNOZ',             gender:'F', dob:'2015-04-19', spouse:[],     father:7,   mother:8   },
-  10: { id:10, first:'KATHRENE',     last:'MUNOZ',             gender:'F', dob:'1981-06-09', spouse:[],     father:6,   mother:5   },
-  11: { id:11, first:'MARJORIE',     last:'MUNOZ',             gender:'F', dob:'1990-07-25', spouse:[],     father:6,   mother:5   },
-  12: { id:12, first:'SISENANDO',    last:'DELOS REYES',       gender:'M', dob:'1958-03-20', spouse:[13],   father:23,  mother:24  },
-  13: { id:13, first:'TERESITA',     last:'DELOS REYES',       gender:'F', dob:'1959-08-28', spouse:[12],   father:null,mother:null},
-  14: { id:14, first:'MARLON',       last:'DELOS REYES',       gender:'M', dob:'1981-06-19', spouse:[15],   father:null,mother:13  },
-  15: { id:15, first:'ROE',          last:'DELOS REYES',       gender:'F', dob:'1982-06-20', spouse:[14],   father:12,  mother:13  },
-  16: { id:16, first:'EVANGELINE',   last:'DELOS REYES',       gender:'F', dob:null,         spouse:[],     father:14,  mother:15  },
-  17: { id:17, first:'LAWRENCE',     last:'DELOS REYES',       gender:'M', dob:null,         spouse:[],     father:14,  mother:15  },
-  18: { id:18, first:'CHRISTIAN',    last:'DELOS REYES',       gender:'M', dob:null,         spouse:[],     father:14,  mother:15  },
-  19: { id:19, first:'JAMES',        last:'CHIU',              gender:'M', dob:null,         spouse:[20],   father:null,mother:null},
-  20: { id:20, first:'KRISTINE',     last:'CHIU',              gender:'F', dob:'1982-08-23', spouse:[19],   father:12,  mother:13  },
-  21: { id:21, first:'ANNABELLE',    last:'CHIU',              gender:'F', dob:null,         spouse:[],     father:19,  mother:20  },
-  22: { id:22, first:'KAYLENE',      last:'CHIU',              gender:'F', dob:null,         spouse:[],     father:19,  mother:20  },
-  23: { id:23, first:'SISENANDO SR', last:'DELOS REYES',       gender:'M', dob:null,         spouse:[24],   father:null,mother:null},
-  24: { id:24, first:'FLORDELIZA',   last:'DELOS REYES',       gender:'F', dob:null,         spouse:[23],   father:null,mother:null},
-  25: { id:25, first:'EUFRACIA',     last:'MIRANDA PANLILIO',  gender:'F', dob:null,         spouse:[54],   father:null,mother:null},
-  26: { id:26, first:'MICHI',        last:'PANLILIO',          gender:'F', dob:null,         spouse:[],     father:54,  mother:25  },
-  27: { id:27, first:'ELLA',         last:'JAVIER',            gender:'F', dob:null,         spouse:[51],   father:null,mother:25  },
-  28: { id:28, first:'EVANGELINE',   last:'GARCIA',            gender:'F', dob:null,         spouse:[55],   father:54,  mother:25  },
-  29: { id:29, first:'EDELMAR',      last:'MIRANDA',           gender:'M', dob:null,         spouse:[],     father:54,  mother:25  },
-  30: { id:30, first:'ELMER',        last:'MIRANDA',           gender:'M', dob:null,         spouse:[57],   father:54,  mother:25  },
-  31: { id:31, first:'ROMEO',        last:'MUNOZ',             gender:'M', dob:null,         spouse:[32],   father:53,  mother:43  },
-  32: { id:32, first:'ERLITA',       last:'MUNOZ',             gender:'F', dob:null,         spouse:[31],   father:null,mother:null},
-  33: { id:33, first:'JULIET',       last:'LACSAMANA',         gender:'F', dob:null,         spouse:[34],   father:53,  mother:43  },
-  34: { id:34, first:'JOSE',         last:'LACSAMANA',         gender:'M', dob:null,         spouse:[33],   father:null,mother:null},
-  35: { id:35, first:'EMMANUEL',     last:'MUNOZ',             gender:'M', dob:null,         spouse:[36],   father:53,  mother:43  },
-  36: { id:36, first:'WILHELMINA',   last:'MUNOZ',             gender:'F', dob:null,         spouse:[35],   father:null,mother:null},
-  37: { id:37, first:'GLORIA',       last:'OCAMPO',            gender:'F', dob:null,         spouse:[38],   father:53,  mother:43  },
-  38: { id:38, first:'VICTORIANO',   last:'OCAMPO',            gender:'M', dob:null,         spouse:[37],   father:null,mother:null},
-  39: { id:39, first:'NENITA',       last:'OCAMPO',            gender:'F', dob:null,         spouse:[40],   father:53,  mother:43  },
-  40: { id:40, first:'EDUARDO',      last:'OCAMPO',            gender:'M', dob:null,         spouse:[39],   father:null,mother:null},
-  41: { id:41, first:'AMELIA',       last:'DEL ROSARIO',       gender:'F', dob:null,         spouse:[42],   father:53,  mother:43  },
-  42: { id:42, first:'BIENVENIDO',   last:'DEL ROSARIO',       gender:'M', dob:null,         spouse:[41],   father:null,mother:null},
-  43: { id:43, first:'IMELDA',       last:'MUNOZ',             gender:'F', dob:null,         spouse:[53],   father:null,mother:null},
-  44: { id:44, first:'ERICO',        last:'MIRANDA',           gender:'M', dob:null,         spouse:[60],   father:54,  mother:25  },
-  45: { id:45, first:'LIGAYA',       last:'NEISH',             gender:'F', dob:null,         spouse:[52],   father:23,  mother:24  },
-  46: { id:46, first:'GIGI',         last:'DELOS REYES',       gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
-  47: { id:47, first:'ZENI',         last:'DELOS REYES',       gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
-  48: { id:48, first:'DEL',          last:'DELOS REYES',       gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
-  49: { id:49, first:'EDGAR',        last:'DELOS REYES',       gender:'M', dob:null,         spouse:[],     father:23,  mother:24  },
-  50: { id:50, first:'NORA',         last:'DELOS REYES',       gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
-  51: { id:51, first:'GERALD',       last:'JAVIER',            gender:'M', dob:null,         spouse:[27],   father:null,mother:null},
-  52: { id:52, first:'JOHN',         last:'NEISH',             gender:'M', dob:null,         spouse:[45],   father:null,mother:null},
-  53: { id:53, first:'SERVILLANO',   last:'MUNOZ',             gender:'M', dob:null,         spouse:[43],   father:null,mother:null},
-  54: { id:54, first:'MARCIANO',     last:'MIRANDA',           gender:'M', dob:null,         spouse:[25],   father:null,mother:null},
-  55: { id:55, first:'ARTHUR',       last:'GARCIA',            gender:'M', dob:null,         spouse:[28],   father:null,mother:null},
-  56: { id:56, first:'EUGENIA',      last:'MIRANDA',           gender:'F', dob:null,         spouse:[],     father:54,  mother:25  },
-  57: { id:57, first:'JOSEPHINE',    last:'MIRANDA',           gender:'F', dob:null,         spouse:[30],   father:null,mother:null},
-  58: { id:58, first:'EMANUEL',      last:'MIRANDA',           gender:'M', dob:null,         spouse:[59],   father:54,  mother:25  },
-  59: { id:59, first:'DIDITH',       last:'MIRANDA',           gender:'F', dob:null,         spouse:[58],   father:null,mother:null},
-  60: { id:60, first:'CONNIE',       last:'MIRANDA',           gender:'F', dob:null,         spouse:[44],   father:null,mother:null},
+  1:  { id:1,  first:'LEONEL',       last:'MUNOZ',            gender:'M', dob:'1983-04-05', spouse:[2],    father:6,   mother:5   },
+  2:  { id:2,  first:'KATHERINE',    last:'MUNOZ',            gender:'F', dob:'1984-06-13', spouse:[1],    father:12,  mother:13  },
+  3:  { id:3,  first:'ISLA HOPE',    last:'MUNOZ',            gender:'F', dob:'2015-01-23', spouse:[],     father:1,   mother:2   },
+  4:  { id:4,  first:'MAISY GRACE',  last:'MUNOZ',            gender:'F', dob:'2016-09-19', spouse:[],     father:1,   mother:2   },
+  5:  { id:5,  first:'ELENA',        last:'MUNOZ',            gender:'F', dob:'1956-05-18', spouse:[6],    father:null,mother:25  },
+  6:  { id:6,  first:'MARIO',        last:'MUNOZ',            gender:'M', dob:'1954-10-18', spouse:[5],    father:53,  mother:43  },
+  7:  { id:7,  first:'JOSEPH',       last:'MUNOZ',            gender:'M', dob:'1979-08-16', spouse:[8],    father:6,   mother:5   },
+  8:  { id:8,  first:'JAYA',         last:'YOON',             gender:'F', dob:null,         spouse:[7],    father:null,mother:null},
+  9:  { id:9,  first:'CLAIRE',       last:'MUNOZ',            gender:'F', dob:'2015-04-19', spouse:[],     father:7,   mother:8   },
+  10: { id:10, first:'KATHRENE',     last:'MUNOZ',            gender:'F', dob:'1981-06-09', spouse:[],     father:6,   mother:5   },
+  11: { id:11, first:'MARJORIE',     last:'MUNOZ',            gender:'F', dob:'1990-07-25', spouse:[],     father:6,   mother:5   },
+  12: { id:12, first:'SISENANDO',    last:'DELOS REYES',      gender:'M', dob:'1958-03-20', spouse:[13],   father:23,  mother:24  },
+  13: { id:13, first:'TERESITA',     last:'DELOS REYES',      gender:'F', dob:'1959-08-28', spouse:[12],   father:null,mother:null},
+  14: { id:14, first:'MARLON',       last:'DELOS REYES',      gender:'M', dob:'1981-06-19', spouse:[15],   father:null,mother:13  },
+  15: { id:15, first:'ROE',          last:'DELOS REYES',      gender:'F', dob:'1982-06-20', spouse:[14],   father:12,  mother:13  },
+  16: { id:16, first:'EVANGELINE',   last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:14,  mother:15  },
+  17: { id:17, first:'LAWRENCE',     last:'DELOS REYES',      gender:'M', dob:null,         spouse:[],     father:14,  mother:15  },
+  18: { id:18, first:'CHRISTIAN',    last:'DELOS REYES',      gender:'M', dob:null,         spouse:[],     father:14,  mother:15  },
+  19: { id:19, first:'JAMES',        last:'CHIU',             gender:'M', dob:null,         spouse:[20],   father:null,mother:null},
+  20: { id:20, first:'KRISTINE',     last:'CHIU',             gender:'F', dob:'1982-08-23', spouse:[19],   father:12,  mother:13  },
+  21: { id:21, first:'ANNABELLE',    last:'CHIU',             gender:'F', dob:null,         spouse:[],     father:19,  mother:20  },
+  22: { id:22, first:'KAYLENE',      last:'CHIU',             gender:'F', dob:null,         spouse:[],     father:19,  mother:20  },
+  23: { id:23, first:'SISENANDO SR', last:'DELOS REYES',      gender:'M', dob:null,         spouse:[24],   father:null,mother:null},
+  24: { id:24, first:'FLORDELIZA',   last:'DELOS REYES',      gender:'F', dob:null,         spouse:[23],   father:null,mother:null},
+  25: { id:25, first:'EUFRACIA',     last:'MIRANDA PANLILIO', gender:'F', dob:null,         spouse:[54],   father:null,mother:null},
+  26: { id:26, first:'MICHI',        last:'PANLILIO',         gender:'F', dob:null,         spouse:[],     father:54,  mother:25  },
+  27: { id:27, first:'ELLA',         last:'JAVIER',           gender:'F', dob:null,         spouse:[51],   father:null,mother:25  },
+  28: { id:28, first:'EVANGELINE',   last:'GARCIA',           gender:'F', dob:null,         spouse:[55],   father:54,  mother:25  },
+  29: { id:29, first:'EDELMAR',      last:'MIRANDA',          gender:'M', dob:null,         spouse:[],     father:54,  mother:25  },
+  30: { id:30, first:'ELMER',        last:'MIRANDA',          gender:'M', dob:null,         spouse:[57],   father:54,  mother:25  },
+  31: { id:31, first:'ROMEO',        last:'MUNOZ',            gender:'M', dob:null,         spouse:[32],   father:53,  mother:43  },
+  32: { id:32, first:'ERLITA',       last:'MUNOZ',            gender:'F', dob:null,         spouse:[31],   father:null,mother:null},
+  33: { id:33, first:'JULIET',       last:'LACSAMANA',        gender:'F', dob:null,         spouse:[34],   father:53,  mother:43  },
+  34: { id:34, first:'JOSE',         last:'LACSAMANA',        gender:'M', dob:null,         spouse:[33],   father:null,mother:null},
+  35: { id:35, first:'EMMANUEL',     last:'MUNOZ',            gender:'M', dob:null,         spouse:[36],   father:53,  mother:43  },
+  36: { id:36, first:'WILHELMINA',   last:'MUNOZ',            gender:'F', dob:null,         spouse:[35],   father:null,mother:null},
+  37: { id:37, first:'GLORIA',       last:'OCAMPO',           gender:'F', dob:null,         spouse:[38],   father:53,  mother:43  },
+  38: { id:38, first:'VICTORIANO',   last:'OCAMPO',           gender:'M', dob:null,         spouse:[37],   father:null,mother:null},
+  39: { id:39, first:'NENITA',       last:'OCAMPO',           gender:'F', dob:null,         spouse:[40],   father:53,  mother:43  },
+  40: { id:40, first:'EDUARDO',      last:'OCAMPO',           gender:'M', dob:null,         spouse:[39],   father:null,mother:null},
+  41: { id:41, first:'AMELIA',       last:'DEL ROSARIO',      gender:'F', dob:null,         spouse:[42],   father:53,  mother:43  },
+  42: { id:42, first:'BIENVENIDO',   last:'DEL ROSARIO',      gender:'M', dob:null,         spouse:[41],   father:null,mother:null},
+  43: { id:43, first:'IMELDA',       last:'MUNOZ',            gender:'F', dob:null,         spouse:[53],   father:null,mother:null},
+  44: { id:44, first:'ERICO',        last:'MIRANDA',          gender:'M', dob:null,         spouse:[60],   father:54,  mother:25  },
+  45: { id:45, first:'LIGAYA',       last:'NEISH',            gender:'F', dob:null,         spouse:[52],   father:23,  mother:24  },
+  46: { id:46, first:'GIGI',         last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
+  47: { id:47, first:'ZENI',         last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
+  48: { id:48, first:'DEL',          last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
+  49: { id:49, first:'EDGAR',        last:'DELOS REYES',      gender:'M', dob:null,         spouse:[],     father:23,  mother:24  },
+  50: { id:50, first:'NORA',         last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
+  51: { id:51, first:'GERALD',       last:'JAVIER',           gender:'M', dob:null,         spouse:[27],   father:null,mother:null},
+  52: { id:52, first:'JOHN',         last:'NEISH',            gender:'M', dob:null,         spouse:[45],   father:null,mother:null},
+  53: { id:53, first:'SERVILLANO',   last:'MUNOZ',            gender:'M', dob:null,         spouse:[43],   father:null,mother:null},
+  54: { id:54, first:'MARCIANO',     last:'MIRANDA',          gender:'M', dob:null,         spouse:[25],   father:null,mother:null},
+  55: { id:55, first:'ARTHUR',       last:'GARCIA',           gender:'M', dob:null,         spouse:[28],   father:null,mother:null},
+  56: { id:56, first:'EUGENIA',      last:'MIRANDA',          gender:'F', dob:null,         spouse:[],     father:54,  mother:25  },
+  57: { id:57, first:'JOSEPHINE',    last:'MIRANDA',          gender:'F', dob:null,         spouse:[30],   father:null,mother:null},
+  58: { id:58, first:'EMANUEL',      last:'MIRANDA',          gender:'M', dob:null,         spouse:[59],   father:54,  mother:25  },
+  59: { id:59, first:'DIDITH',       last:'MIRANDA',          gender:'F', dob:null,         spouse:[58],   father:null,mother:null},
+  60: { id:60, first:'CONNIE',       last:'MIRANDA',          gender:'F', dob:null,         spouse:[44],   father:null,mother:null},
 };
 
-// ─── GENERATION LAYOUT ────────────────────────────────────────────────────────
-// Gen 0: Great-Great-Grandparents
-// Gen 1: Great-Grandparents
-// Gen 2: Grandparents
-// Gen 3: Parents
-// Gen 4: Children/Grandchildren
+// Runtime state (overrides from editing)
+const dobOverrides   = {};  // id -> 'YYYY-MM-DD' or null
+const photoOverrides = {};  // id -> dataURL
 
+// ─── GENERATION LAYOUT ────────────────────────────────────────────────────────
 const genLayout = [
   {
-    label: 'Great-Great-Grandparents',
+    label: 'Generation I',
     units: [
       { ids:[23,24], children:[12,45,46,47,48,49,50] },
       { ids:[53,43], children:[6,31,33,35,37,39,41] },
@@ -313,7 +298,7 @@ const genLayout = [
     ]
   },
   {
-    label: 'Great-Grandparents',
+    label: 'Generation II',
     units: [
       { ids:[52,45] },
       { ids:[46] },
@@ -321,7 +306,7 @@ const genLayout = [
       { ids:[48] },
       { ids:[49] },
       { ids:[50] },
-      { ids:[12,13], children:[2,15,20] },
+      { ids:[12,13], children:[15,20,2] },
       { ids:[31,32] },
       { ids:[34,33] },
       { ids:[35,36] },
@@ -340,7 +325,7 @@ const genLayout = [
     ]
   },
   {
-    label: 'Grandparents',
+    label: 'Generation III',
     units: [
       { ids:[14,15], children:[16,17,18] },
       { ids:[19,20], children:[21,22] },
@@ -351,7 +336,7 @@ const genLayout = [
     ]
   },
   {
-    label: 'Children',
+    label: 'Generation IV',
     units: [
       { ids:[16] },
       { ids:[17] },
@@ -365,27 +350,28 @@ const genLayout = [
   }
 ];
 
-// ─── DOM BUILD ────────────────────────────────────────────────────────────────
-const nodeEls = {};
+// ─── SVG ICONS ────────────────────────────────────────────────────────────────
+const maleSVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="21" height="21">
+  <path d="M14.5 2h5.5v5.5l-2-2-4.2 4.2A6 6 0 1 1 9 3.07L11.5 5.5 14.5 2zM9 8a4 4 0 1 0 0 8A4 4 0 0 0 9 8z"/>
+</svg>`;
+const femaleSVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="21" height="21">
+  <path d="M12 2a6 6 0 1 1-3.5 10.8L11 16h1.5v2H11v3H9v-3H7.5v-2H9l-2.5-3.2A6 6 0 0 1 12 2zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+</svg>`;
 
+// ─── FORMAT DOB ───────────────────────────────────────────────────────────────
 function formatDob(dob) {
   if (!dob) return '';
-  const d = new Date(dob);
+  const d = new Date(dob + 'T00:00:00');
   if (isNaN(d)) return '';
   return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
 }
 
-function maleSVG() {
-  return `<svg width="21" height="21" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M14.5 2h5.5v5.5l-2-2-4.2 4.2A6 6 0 1 1 9 3.07L11.5 5.5 14.5 2zM9 8a4 4 0 1 0 0 8A4 4 0 0 0 9 8z"/>
-  </svg>`;
+function getDob(id) {
+  return id in dobOverrides ? dobOverrides[id] : people[id].dob;
 }
 
-function femaleSVG() {
-  return `<svg width="21" height="21" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2a6 6 0 1 1-3.5 10.8L11 16h1.5v2H11v3H9v-3H7.5v-2H9l-2.5-3.2A6 6 0 0 1 12 2zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
-  </svg>`;
-}
+// ─── DOM BUILD ────────────────────────────────────────────────────────────────
+const nodeEls = {};
 
 function buildCard(id) {
   const p = people[id];
@@ -394,14 +380,62 @@ function buildCard(id) {
   div.className = 'person-card';
   div.dataset.id = String(id);
   const isMale = p.gender === 'M';
+
+  const iconHtml = `<div class="icon-wrap ${isMale ? 'icon-male' : 'icon-female'}" data-icon-id="${id}">
+    ${isMale ? maleSVG : femaleSVG}
+    ${photoOverrides[id] ? `<img class="photo-img" src="${photoOverrides[id]}">` : ''}
+  </div>`;
+
   div.innerHTML = `
-    <div class="icon-wrap ${isMale ? 'icon-male' : 'icon-female'}">${isMale ? maleSVG() : femaleSVG()}</div>
+    ${iconHtml}
     <div class="person-name">${p.first}<span class="person-surname">${p.last}</span></div>
-    <div class="person-dob">${formatDob(p.dob)}</div>
+    <div class="person-dob" data-dob-id="${id}">${formatDob(getDob(id)) || '—'}</div>
   `;
-  div.addEventListener('click', () => selectPerson(id));
+
+  // Left-click card → select lineage
+  div.addEventListener('click', (e) => {
+    if (e.target.closest('.icon-wrap') || e.target.closest('.person-dob')) return;
+    selectPerson(id);
+  });
+  div.addEventListener('click', (e) => {
+    if (!e.target.closest('.icon-wrap') && !e.target.closest('.person-dob')) selectPerson(id);
+  });
+
+  // Right-click on icon → photo menu
+  div.querySelector('.icon-wrap').addEventListener('contextmenu', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    showPhotoMenu(id, e.clientX, e.clientY);
+  });
+
+  // Right-click on DOB → edit DOB menu
+  div.querySelector('.person-dob').addEventListener('contextmenu', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    showDobMenu(id, e.clientX, e.clientY);
+  });
+
   nodeEls[id] = div;
   return div;
+}
+
+function refreshCard(id) {
+  const div = nodeEls[id];
+  if (!div) return;
+  const p = people[id];
+  const isMale = p.gender === 'M';
+
+  // Refresh icon (photo)
+  const iconEl = div.querySelector('.icon-wrap');
+  iconEl.innerHTML = (isMale ? maleSVG : femaleSVG);
+  if (photoOverrides[id]) {
+    const img = document.createElement('img');
+    img.className = 'photo-img';
+    img.src = photoOverrides[id];
+    iconEl.appendChild(img);
+  }
+
+  // Refresh DOB
+  const dobEl = div.querySelector('.person-dob');
+  dobEl.textContent = formatDob(getDob(id)) || '—';
 }
 
 const treeRoot = document.getElementById('tree-root');
@@ -442,119 +476,107 @@ const svgEl = document.getElementById('lines-svg');
 const NS = 'http://www.w3.org/2000/svg';
 let lineRecords = [];
 
-function getCardIconRect(id) {
+function getOffsetPos(el, ancestor) {
+  let x = 0, y = 0, cur = el;
+  while (cur && cur !== ancestor) { x += cur.offsetLeft; y += cur.offsetTop; cur = cur.offsetParent; }
+  return { x, y };
+}
+
+function getIconRect(id) {
   const el = nodeEls[id];
   if (!el) return null;
   const wrapper = document.getElementById('tree-wrapper');
-  const wr = wrapper.getBoundingClientRect();
-  const iconEl = el.querySelector('.icon-wrap');
-  const ir = iconEl.getBoundingClientRect();
-  return {
-    iconCx:     ir.left - wr.left + ir.width / 2,
-    iconCy:     ir.top  - wr.top  + ir.height / 2,
-    iconBottom: ir.top  - wr.top  + ir.height,
-    iconTop:    ir.top  - wr.top,
-  };
+  const icon = el.querySelector('.icon-wrap');
+  const pos = getOffsetPos(icon, wrapper);
+  const w = icon.offsetWidth, h = icon.offsetHeight;
+  return { cx: pos.x + w/2, cy: pos.y + h/2, top: pos.y, bottom: pos.y + h };
 }
 
-function makePath(d, stroke, sw, dasharray, opacity) {
+function mkPath(d, stroke, sw, dash, opacity) {
   const path = document.createElementNS(NS, 'path');
   path.setAttribute('d', d);
   path.setAttribute('fill', 'none');
   path.setAttribute('stroke', stroke || 'var(--line)');
   path.setAttribute('stroke-width', sw || '1.8');
   path.setAttribute('stroke-linecap', 'round');
-  if (dasharray) path.setAttribute('stroke-dasharray', dasharray);
-  if (opacity !== undefined) path.setAttribute('opacity', String(opacity));
+  if (dash)    path.setAttribute('stroke-dasharray', dash);
+  if (opacity != null) path.setAttribute('opacity', String(opacity));
   return path;
 }
 
 function drawAllLines(lineageSet) {
   svgEl.innerHTML = '';
   lineRecords = [];
-
   const wrapper = document.getElementById('tree-wrapper');
-  svgEl.setAttribute('width',  wrapper.scrollWidth  + 40);
-  svgEl.setAttribute('height', wrapper.scrollHeight + 40);
+  svgEl.setAttribute('width',  wrapper.scrollWidth  + 60);
+  svgEl.setAttribute('height', wrapper.scrollHeight + 60);
 
   genLayout.forEach(gen => {
     gen.units.forEach(unit => {
       const ids      = unit.ids      || [];
       const childIds = unit.children || [];
 
-      // ── Spouse connector (dashed curve) ──────────────────────────────────
+      // Spouse connector
       if (ids.length === 2) {
-        const ra = getCardIconRect(ids[0]);
-        const rb = getCardIconRect(ids[1]);
+        const ra = getIconRect(ids[0]), rb = getIconRect(ids[1]);
         if (ra && rb) {
-          const mx = (ra.iconCx + rb.iconCx) / 2;
-          const my = (ra.iconCy + rb.iconCy) / 2;
-          const d  = `M ${ra.iconCx} ${ra.iconCy} Q ${mx} ${my - 8} ${rb.iconCx} ${rb.iconCy}`;
-          const path = makePath(d, 'var(--line)', '1.5', '5,3', 0.7);
+          const mx = (ra.cx + rb.cx) / 2, my = (ra.cy + rb.cy) / 2;
+          const path = mkPath(`M ${ra.cx} ${ra.cy} Q ${mx} ${my - 8} ${rb.cx} ${rb.cy}`,
+            'var(--line)', '1.5', '5,3', 0.7);
           svgEl.appendChild(path);
           lineRecords.push({ path, parentIds: ids, childIds: [] });
         }
       }
 
-      // ── Parent → child connectors ─────────────────────────────────────────
+      // Parent → child
       if (childIds.length > 0) {
-        const validParents  = ids.filter(id => nodeEls[id]);
-        const validChildren = childIds.filter(id => nodeEls[id]);
-        if (!validParents.length || !validChildren.length) return;
+        const vParents  = ids.filter(id => nodeEls[id]);
+        const vChildren = childIds.filter(id => nodeEls[id]);
+        if (!vParents.length || !vChildren.length) return;
 
-        // Mid-X between parents
-        const pRects = validParents.map(id => getCardIconRect(id));
-        const parentMidX   = pRects.reduce((s, r) => s + r.iconCx, 0) / pRects.length;
-        const parentBottom = pRects[0].iconBottom;
-        const dropY        = parentBottom + 32;
+        const pRects = vParents.map(id => getIconRect(id)).filter(Boolean);
+        const parentMidX   = pRects.reduce((s,r) => s + r.cx, 0) / pRects.length;
+        const parentBottom = Math.max(...pRects.map(r => r.bottom));
+        const dropY        = parentBottom + 30;
 
-        const cRects  = validChildren.map(id => getCardIconRect(id));
-        const childCxs = cRects.map(r => r.iconCx);
-        const childMeetY = Math.min(...cRects.map(r => r.iconTop)) - 20;
+        const cRects   = vChildren.map(id => getIconRect(id)).filter(Boolean);
+        const childCxs = cRects.map(r => r.cx);
+        const childMeetY = Math.min(...cRects.map(r => r.top)) - 20;
 
-        // Vertical stem down from parent midpoint
-        const stemPath = makePath(
-          `M ${parentMidX} ${parentBottom} L ${parentMidX} ${dropY}`,
-          'var(--line)', '1.8'
-        );
-        svgEl.appendChild(stemPath);
-        lineRecords.push({ path: stemPath, parentIds: ids, childIds });
+        // Stem down
+        const stem = mkPath(`M ${parentMidX} ${parentBottom} L ${parentMidX} ${dropY}`, 'var(--line)', '1.8');
+        svgEl.appendChild(stem);
+        lineRecords.push({ path: stem, parentIds: ids, childIds });
 
-        if (validChildren.length > 1) {
-          // Curved elbow from dropY → centre of child bar at childMeetY
-          const barCentreX = (Math.min(...childCxs) + Math.max(...childCxs)) / 2;
-          if (Math.abs(parentMidX - barCentreX) > 4) {
+        if (vChildren.length > 1) {
+          const barCx = (Math.min(...childCxs) + Math.max(...childCxs)) / 2;
+          if (Math.abs(parentMidX - barCx) > 4) {
             const cy1 = dropY + (childMeetY - dropY) * 0.55;
-            const elbow = makePath(
-              `M ${parentMidX} ${dropY} C ${parentMidX} ${cy1}, ${barCentreX} ${cy1}, ${barCentreX} ${childMeetY}`,
-              'var(--line)', '1.8'
-            );
+            const elbow = mkPath(
+              `M ${parentMidX} ${dropY} C ${parentMidX} ${cy1}, ${barCx} ${cy1}, ${barCx} ${childMeetY}`,
+              'var(--line)', '1.8');
             svgEl.appendChild(elbow);
             lineRecords.push({ path: elbow, parentIds: ids, childIds });
           }
-
-          // Horizontal bus across all children
-          const busPath = makePath(
+          const bus = mkPath(
             `M ${Math.min(...childCxs)} ${childMeetY} L ${Math.max(...childCxs)} ${childMeetY}`,
-            'var(--line)', '1.8'
-          );
-          svgEl.appendChild(busPath);
-          lineRecords.push({ path: busPath, parentIds: ids, childIds });
+            'var(--line)', '1.8');
+          svgEl.appendChild(bus);
+          lineRecords.push({ path: bus, parentIds: ids, childIds });
         }
 
-        // Vertical drop from bus (or dropY if single child) to each child icon
-        validChildren.forEach((cid, i) => {
+        vChildren.forEach((cid, i) => {
           const cr    = cRects[i];
-          const fromX = cr.iconCx;
-          const fromY = validChildren.length > 1 ? childMeetY : dropY;
+          const fromX = cr.cx;
+          const fromY = vChildren.length > 1 ? childMeetY : dropY;
           let d;
-          if (validChildren.length > 1 || Math.abs(fromX - parentMidX) < 4) {
-            d = `M ${fromX} ${fromY} L ${fromX} ${cr.iconTop}`;
+          if (vChildren.length > 1 || Math.abs(fromX - parentMidX) < 4) {
+            d = `M ${fromX} ${fromY} L ${fromX} ${cr.top}`;
           } else {
-            const midY = (fromY + cr.iconTop) / 2;
-            d = `M ${fromX} ${fromY} C ${fromX} ${midY}, ${cr.iconCx} ${midY}, ${cr.iconCx} ${cr.iconTop}`;
+            const midY = (fromY + cr.top) / 2;
+            d = `M ${fromX} ${fromY} C ${fromX} ${midY}, ${cr.cx} ${midY}, ${cr.cx} ${cr.top}`;
           }
-          const path = makePath(d, 'var(--line)', '1.8');
+          const path = mkPath(d, 'var(--line)', '1.8');
           svgEl.appendChild(path);
           lineRecords.push({ path, parentIds: ids, childIds: [cid] });
         });
@@ -563,44 +585,6 @@ function drawAllLines(lineageSet) {
   });
 
   applyLineStyle(lineageSet);
-}
-
-// ─── SELECTION & LINEAGE ──────────────────────────────────────────────────────
-let selectedId = null;
-
-function getLineage(id) {
-  const set = new Set([id]);
-
-  function walkUp(pid) {
-    if (!pid || set.has(pid)) return;
-    set.add(pid);
-    const p = people[pid];
-    if (!p) return;
-    (p.spouse || []).forEach(s => {
-      if (!set.has(s)) { set.add(s); walkUp(people[s]?.father); walkUp(people[s]?.mother); }
-    });
-    walkUp(p.father);
-    walkUp(p.mother);
-  }
-
-  function walkDown(pid) {
-    Object.values(people).forEach(p => {
-      if ((p.father === pid || p.mother === pid) && !set.has(p.id)) {
-        set.add(p.id);
-        (p.spouse || []).forEach(s => set.add(s));
-        walkDown(p.id);
-      }
-    });
-  }
-
-  const p = people[id];
-  if (!p) return set;
-  (p.spouse || []).forEach(s => set.add(s));
-  walkUp(p.father);
-  walkUp(p.mother);
-  walkDown(id);
-  (p.spouse || []).forEach(s => walkDown(s));
-  return set;
 }
 
 function applyLineStyle(lineageSet) {
@@ -618,10 +602,36 @@ function applyLineStyle(lineageSet) {
       path.setAttribute('stroke-width', '2.3');
     } else {
       path.setAttribute('stroke', '#ccc');
-      path.setAttribute('opacity', '0.18');
+      path.setAttribute('opacity', '0.15');
       path.setAttribute('stroke-width', '1.5');
     }
   });
+}
+
+// ─── LINEAGE SELECTION ────────────────────────────────────────────────────────
+let selectedId = null;
+
+function getLineage(id) {
+  const set = new Set([id]);
+  function walkUp(pid) {
+    if (!pid || set.has(pid)) return;
+    set.add(pid);
+    const p = people[pid]; if (!p) return;
+    (p.spouse||[]).forEach(s => { if (!set.has(s)) { set.add(s); walkUp(people[s]?.father); walkUp(people[s]?.mother); }});
+    walkUp(p.father); walkUp(p.mother);
+  }
+  function walkDown(pid) {
+    Object.values(people).forEach(p => {
+      if ((p.father === pid || p.mother === pid) && !set.has(p.id)) {
+        set.add(p.id); (p.spouse||[]).forEach(s => set.add(s)); walkDown(p.id);
+      }
+    });
+  }
+  const p = people[id]; if (!p) return set;
+  (p.spouse||[]).forEach(s => set.add(s));
+  walkUp(p.father); walkUp(p.mother);
+  walkDown(id); (p.spouse||[]).forEach(s => walkDown(s));
+  return set;
 }
 
 function selectPerson(id) {
@@ -630,11 +640,11 @@ function selectPerson(id) {
   document.getElementById('deselect-btn').style.display = 'inline-block';
   const lineage = getLineage(id);
   Object.entries(nodeEls).forEach(([eid, el]) => {
-    el.classList.remove('selected', 'selected-lineage', 'greyed');
-    const numId = parseInt(eid);
-    if      (numId === id)        el.classList.add('selected', 'selected-lineage');
-    else if (lineage.has(numId))  el.classList.add('selected-lineage');
-    else                          el.classList.add('greyed');
+    el.classList.remove('selected','selected-lineage','greyed');
+    const n = parseInt(eid);
+    if      (n === id)       el.classList.add('selected','selected-lineage');
+    else if (lineage.has(n)) el.classList.add('selected-lineage');
+    else                     el.classList.add('greyed');
   });
   drawAllLines(lineage);
 }
@@ -642,14 +652,151 @@ function selectPerson(id) {
 function deselectAll() {
   selectedId = null;
   document.getElementById('deselect-btn').style.display = 'none';
-  Object.values(nodeEls).forEach(el =>
-    el.classList.remove('selected', 'selected-lineage', 'greyed')
-  );
+  Object.values(nodeEls).forEach(el => el.classList.remove('selected','selected-lineage','greyed'));
   drawAllLines(null);
 }
 
-window.addEventListener('load',   () => { setTimeout(() => drawAllLines(null), 150); });
-window.addEventListener('resize', () => { drawAllLines(selectedId ? getLineage(selectedId) : null); });
+// ─── CONTEXT MENU ─────────────────────────────────────────────────────────────
+const ctxMenu = document.getElementById('ctx-menu');
+let ctxTargetId = null;
+
+function showCtxMenu(x, y, items) {
+  ctxMenu.innerHTML = '';
+  items.forEach((item, i) => {
+    if (item === 'sep') {
+      const sep = document.createElement('div'); sep.className = 'ctx-sep';
+      ctxMenu.appendChild(sep);
+    } else {
+      const el = document.createElement('div');
+      el.className = 'ctx-item';
+      el.innerHTML = `${item.icon || ''}<span>${item.label}</span>`;
+      el.addEventListener('click', () => { hideCtxMenu(); item.action(); });
+      ctxMenu.appendChild(el);
+    }
+  });
+  ctxMenu.style.display = 'block';
+  // Position: keep within viewport
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let left = x + 4, top = y + 4;
+  ctxMenu.style.left = '0'; ctxMenu.style.top = '0';
+  const mw = ctxMenu.offsetWidth, mh = ctxMenu.offsetHeight;
+  if (left + mw > vw - 8) left = x - mw - 4;
+  if (top  + mh > vh - 8) top  = y - mh - 4;
+  ctxMenu.style.left = left + 'px';
+  ctxMenu.style.top  = top  + 'px';
+}
+
+function hideCtxMenu() { ctxMenu.style.display = 'none'; }
+
+document.addEventListener('click',       hideCtxMenu);
+document.addEventListener('contextmenu', (e) => { if (!e.target.closest('.icon-wrap') && !e.target.closest('.person-dob')) hideCtxMenu(); });
+
+// Photo context menu
+function showPhotoMenu(id, x, y) {
+  ctxTargetId = id;
+  const hasPhoto = !!photoOverrides[id];
+  const items = [
+    {
+      icon: `<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 2a8 8 0 1 1 0 16A8 8 0 0 1 12 4zm-1 4v3H8l4 4 4-4h-3V8h-2zm-5 8v2h10v-2H6z"/></svg>`,
+      label: hasPhoto ? 'Replace Photo' : 'Upload Photo',
+      action: () => triggerPhotoUpload(id)
+    },
+  ];
+  if (hasPhoto) {
+    items.push('sep');
+    items.push({
+      icon: `<svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
+      label: 'Remove Photo',
+      action: () => { delete photoOverrides[id]; refreshCard(id); }
+    });
+  }
+  showCtxMenu(x, y, items);
+}
+
+// DOB context menu
+function showDobMenu(id, x, y) {
+  ctxTargetId = id;
+  showCtxMenu(x, y, [
+    {
+      icon: `<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`,
+      label: 'Edit Date of Birth',
+      action: () => openDobModal(id)
+    }
+  ]);
+}
+
+// ─── PHOTO UPLOAD ─────────────────────────────────────────────────────────────
+const photoInput = document.getElementById('photo-file-input');
+let photoTargetId = null;
+
+function triggerPhotoUpload(id) {
+  photoTargetId = id;
+  photoInput.value = '';
+  photoInput.click();
+}
+
+photoInput.addEventListener('change', () => {
+  const file = photoInput.files[0];
+  if (!file || !photoTargetId) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    photoOverrides[photoTargetId] = e.target.result;
+    refreshCard(photoTargetId);
+    photoTargetId = null;
+  };
+  reader.readAsDataURL(file);
+});
+
+// ─── DOB MODAL ────────────────────────────────────────────────────────────────
+const modalOverlay  = document.getElementById('modal-overlay');
+const modalInput    = document.getElementById('modal-date-input');
+const modalTitle    = document.getElementById('modal-title');
+let modalTargetId   = null;
+
+function openDobModal(id) {
+  modalTargetId = id;
+  const p = people[id];
+  modalTitle.textContent = `Edit DOB — ${p.first} ${p.last}`;
+  const cur = getDob(id);
+  modalInput.value = cur || '';
+  modalOverlay.style.display = 'flex';
+  setTimeout(() => modalInput.focus(), 50);
+}
+
+function closeModal(e) {
+  if (e && e.target !== modalOverlay) return;
+  modalOverlay.style.display = 'none';
+  modalTargetId = null;
+}
+
+function saveDob() {
+  if (modalTargetId == null) return;
+  const val = modalInput.value;
+  dobOverrides[modalTargetId] = val || null;
+  refreshCard(modalTargetId);
+  modalOverlay.style.display = 'none';
+  modalTargetId = null;
+}
+
+function clearDob() {
+  if (modalTargetId == null) return;
+  dobOverrides[modalTargetId] = null;
+  refreshCard(modalTargetId);
+  modalOverlay.style.display = 'none';
+  modalTargetId = null;
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { closeModal(); hideCtxMenu(); }
+  if (e.key === 'Enter' && modalOverlay.style.display === 'flex') saveDob();
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  // Wait for fonts + layout to fully settle before drawing lines
+  setTimeout(() => drawAllLines(null), 300);
+});
+window.addEventListener('resize', () => drawAllLines(selectedId ? getLineage(selectedId) : null));
 </script>
 </body>
 </html>
