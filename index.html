@@ -7,194 +7,249 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f5f0e8;
-    --bg2: #ede7d9;
-    --ink: #2c2416;
-    --ink-light: #7a6a55;
-    --male: #3b7ec8;
-    --male-light: #d0e4f7;
-    --female: #c84b8a;
-    --female-light: #f7d0e8;
-    --line: #b8a898;
-    --line-active: #5a3a20;
-    --card-bg: #fffdf8;
-    --card-shadow: 0 2px 12px rgba(44,36,22,0.10);
-    --grey-text: #b0a898;
+    --bg:#f5f0e8; --bg2:#ede7d9; --ink:#2c2416; --ink-light:#7a6a55;
+    --male:#3b7ec8; --male-light:#d0e4f7; --female:#c84b8a; --female-light:#f7d0e8;
+    --line:#b8a898; --line-active:#5a3a20;
+    --card-bg:#fffdf8; --card-shadow:0 2px 12px rgba(44,36,22,.10);
+    --grey-text:#b0a898; --accent:#7a5c3a;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    font-family: 'Lato', sans-serif;
-    color: var(--ink);
-    min-height: 100vh;
-    overflow-x: auto;
-  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);font-family:'Lato',sans-serif;color:var(--ink);min-height:100vh;overflow-x:auto;}
 
   /* ── HEADER ── */
-  header {
-    text-align: center;
-    padding: 22px 20px 14px;
-    background: var(--bg2);
-    border-bottom: 1.5px solid #d6cfc4;
-    position: sticky; top: 0; z-index: 300;
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 24px 14px;background:var(--bg2);
+    border-bottom:1.5px solid #d6cfc4;position:sticky;top:0;z-index:300;gap:12px;
   }
-  header h1 { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; color:var(--ink); }
-  header p  { font-size:0.71rem; color:var(--ink-light); margin-top:3px; letter-spacing:.1em; text-transform:uppercase; }
-  .hint     { font-size:0.70rem; color:var(--ink-light); margin-top:5px; font-style:italic; }
-  #deselect-btn {
-    margin-top:7px; display:none;
-    background:var(--ink); color:#fff; border:none; border-radius:20px;
-    padding:5px 16px; font-size:.71rem; cursor:pointer;
-    font-family:'Lato',sans-serif; letter-spacing:.08em; text-transform:uppercase;
-    transition:background .2s;
+  .header-center{text-align:center;flex:1;}
+  header h1{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;color:var(--ink);}
+  header p{font-size:.70rem;color:var(--ink-light);margin-top:2px;letter-spacing:.1em;text-transform:uppercase;}
+  .hint{font-size:.68rem;color:var(--ink-light);margin-top:4px;font-style:italic;}
+  .header-left{min-width:130px;}
+  .header-right{min-width:130px;display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+
+  #deselect-btn{
+    display:none;background:var(--ink);color:#fff;border:none;border-radius:20px;
+    padding:5px 14px;font-size:.70rem;cursor:pointer;font-family:'Lato',sans-serif;
+    letter-spacing:.07em;text-transform:uppercase;transition:background .2s;white-space:nowrap;
   }
-  #deselect-btn:hover { background:#5a3a20; }
+  #deselect-btn:hover{background:#5a3a20;}
+
+  #add-person-btn{
+    background:var(--accent);color:#fff;border:none;border-radius:20px;
+    padding:7px 16px;font-size:.72rem;cursor:pointer;font-family:'Lato',sans-serif;
+    letter-spacing:.07em;text-transform:uppercase;transition:background .2s;
+    display:flex;align-items:center;gap:6px;white-space:nowrap;
+  }
+  #add-person-btn:hover{background:#5a3a20;}
+  #add-person-btn svg{width:13px;height:13px;fill:#fff;flex-shrink:0;}
 
   /* ── TREE ── */
-  #tree-container { padding:40px 60px 100px; min-width:max-content; }
-  #tree-wrapper   { position:relative; display:inline-block; min-width:100%; }
-  #lines-svg      { position:absolute; top:0; left:0; pointer-events:none; z-index:1; overflow:visible; }
-
-  .gen-block { margin-bottom:80px; position:relative; z-index:2; }
-  .generation-label {
-    font-family:'Playfair Display',serif; font-size:.69rem;
-    letter-spacing:.18em; text-transform:uppercase;
-    color:var(--ink-light); margin-bottom:14px;
-    padding-left:10px; border-left:3px solid #c8bfb0;
+  #tree-container{padding:40px 60px 100px;min-width:max-content;}
+  #tree-wrapper{position:relative;display:inline-block;min-width:100%;}
+  #lines-svg{position:absolute;top:0;left:0;pointer-events:none;z-index:1;overflow:visible;}
+  .gen-block{margin-bottom:80px;position:relative;z-index:2;}
+  .generation-label{
+    font-family:'Playfair Display',serif;font-size:.69rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-light);margin-bottom:14px;
+    padding-left:10px;border-left:3px solid #c8bfb0;
   }
-  .generation-row { display:flex; flex-direction:row; align-items:flex-start; flex-wrap:nowrap; }
-  .couple-unit    { display:flex; flex-direction:row; align-items:flex-start; }
-  .unit-spacer    { width:26px; flex-shrink:0; }
+  .generation-row{display:flex;flex-direction:row;align-items:flex-start;flex-wrap:nowrap;}
+  .couple-unit{display:flex;flex-direction:row;align-items:flex-start;}
+  .unit-spacer{width:26px;flex-shrink:0;}
+
+  /* Unlinked row */
+  #unlinked-block{margin-top:40px;padding-top:30px;border-top:1.5px dashed #c8bfb0;}
 
   /* ── CARD ── */
-  .person-card {
-    display:flex; flex-direction:column; align-items:center;
-    width:88px; cursor:pointer;
-    padding:9px 5px 8px; border-radius:14px;
-    background:var(--card-bg); box-shadow:var(--card-shadow);
+  .person-card{
+    display:flex;flex-direction:column;align-items:center;width:88px;
+    cursor:pointer;padding:9px 5px 8px;border-radius:14px;
+    background:var(--card-bg);box-shadow:var(--card-shadow);
     border:2px solid transparent;
-    transition:box-shadow .2s, border-color .2s, opacity .3s, filter .3s, transform .15s;
-    position:relative; margin:0 4px; user-select:none;
+    transition:box-shadow .2s,border-color .2s,opacity .3s,filter .3s,transform .15s;
+    position:relative;margin:0 4px;user-select:none;
   }
-  .person-card:hover                { box-shadow:0 4px 20px rgba(44,36,22,.18); transform:translateY(-2px); }
-  .person-card.greyed               { opacity:.16; filter:grayscale(.8); pointer-events:none; }
-  .person-card.selected-lineage     { opacity:1; filter:none; }
-  .person-card.selected             { border-color:var(--ink); box-shadow:0 0 0 3px rgba(90,58,32,.2),0 6px 24px rgba(90,58,32,.2); transform:translateY(-2px); }
+  .person-card:hover{box-shadow:0 4px 20px rgba(44,36,22,.18);transform:translateY(-2px);}
+  .person-card.greyed{opacity:.16;filter:grayscale(.8);pointer-events:none;}
+  .person-card.selected-lineage{opacity:1;filter:none;}
+  .person-card.selected{border-color:var(--ink);box-shadow:0 0 0 3px rgba(90,58,32,.2),0 6px 24px rgba(90,58,32,.2);transform:translateY(-2px);}
+  .person-card.link-target-hover{border-color:#3b7ec8;box-shadow:0 0 0 3px rgba(59,126,200,.25);}
 
   /* ── ICON ── */
-  .icon-wrap {
-    width:42px; height:42px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    margin-bottom:6px; flex-shrink:0; position:relative; overflow:hidden;
-    cursor:pointer;
+  .icon-wrap{
+    width:42px;height:42px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:6px;flex-shrink:0;position:relative;overflow:hidden;cursor:pointer;
   }
-  .icon-male   { background:var(--male-light); }
-  .icon-female { background:var(--female-light); }
-  .icon-male   svg { fill:var(--male); }
-  .icon-female svg { fill:var(--female); }
-  .icon-wrap .photo-img {
-    position:absolute; inset:0; width:100%; height:100%;
-    object-fit:cover; border-radius:50%;
-  }
-  .person-card.greyed .icon-wrap { background:#e4e0db !important; }
-  .person-card.greyed .icon-wrap svg { fill:#b8b0a5 !important; }
+  .icon-male{background:var(--male-light);}
+  .icon-female{background:var(--female-light);}
+  .icon-male svg{fill:var(--male);}
+  .icon-female svg{fill:var(--female);}
+  .icon-wrap .photo-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .person-card.greyed .icon-wrap{background:#e4e0db!important;}
+  .person-card.greyed .icon-wrap svg{fill:#b8b0a5!important;}
 
   /* ── NAME / DOB ── */
-  .person-name {
-    font-size:.60rem; font-weight:700; text-align:center; line-height:1.25;
-    color:var(--ink); letter-spacing:.02em; text-transform:uppercase;
-    margin-bottom:3px; min-height:20px;
+  .person-name{
+    font-size:.60rem;font-weight:700;text-align:center;line-height:1.25;
+    color:var(--ink);letter-spacing:.02em;text-transform:uppercase;
+    margin-bottom:3px;min-height:20px;
   }
-  .person-surname { font-weight:300; font-size:.54rem; display:block; }
-  .person-card.greyed .person-name { color:var(--grey-text); }
-
-  .person-dob {
-    font-size:.54rem; color:var(--ink-light); text-align:center;
-    letter-spacing:.02em; min-height:12px; cursor:context-menu;
-    border-radius:4px; padding:1px 4px;
-    transition:background .15s;
+  .person-surname{font-weight:300;font-size:.54rem;display:block;}
+  .person-card.greyed .person-name{color:var(--grey-text);}
+  .person-dob{
+    font-size:.54rem;color:var(--ink-light);text-align:center;
+    letter-spacing:.02em;min-height:12px;cursor:context-menu;
+    border-radius:4px;padding:1px 4px;transition:background .15s;
   }
-  .person-dob:hover { background:rgba(90,58,32,.08); }
-  .person-card.greyed .person-dob { color:var(--grey-text); }
+  .person-dob:hover{background:rgba(90,58,32,.08);}
+  .person-card.greyed .person-dob{color:var(--grey-text);}
 
   /* ── CONTEXT MENU ── */
-  .ctx-menu {
-    position:fixed; z-index:9999;
-    background:#fffdf8; border:1px solid #d6cfc4;
-    border-radius:10px; box-shadow:0 8px 32px rgba(44,36,22,.18);
-    padding:6px 0; min-width:170px;
-    font-size:.78rem; font-family:'Lato',sans-serif;
+  .ctx-menu{
+    position:fixed;z-index:9999;background:#fffdf8;border:1px solid #d6cfc4;
+    border-radius:10px;box-shadow:0 8px 32px rgba(44,36,22,.18);
+    padding:6px 0;min-width:178px;font-size:.78rem;font-family:'Lato',sans-serif;
     animation:menuFade .12s ease;
   }
-  @keyframes menuFade { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
-  .ctx-item {
-    padding:8px 16px; cursor:pointer; color:var(--ink);
-    display:flex; align-items:center; gap:8px;
-    transition:background .1s;
-  }
-  .ctx-item:hover { background:#f0e8dc; }
-  .ctx-item svg   { width:14px; height:14px; fill:var(--ink-light); flex-shrink:0; }
-  .ctx-sep        { height:1px; background:#e8e0d4; margin:4px 0; }
+  @keyframes menuFade{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+  .ctx-item{padding:8px 16px;cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:8px;transition:background .1s;}
+  .ctx-item:hover{background:#f0e8dc;}
+  .ctx-item svg{width:14px;height:14px;fill:var(--ink-light);flex-shrink:0;}
+  .ctx-item.danger{color:#c06060;}
+  .ctx-item.danger svg{fill:#c06060;}
+  .ctx-sep{height:1px;background:#e8e0d4;margin:4px 0;}
+  .ctx-label{padding:4px 16px 2px;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-light);}
 
-  /* ── MODAL (DOB edit) ── */
-  .modal-overlay {
-    position:fixed; inset:0; background:rgba(44,36,22,.35);
-    z-index:9998; display:flex; align-items:center; justify-content:center;
+  /* ── MODALS ── */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(44,36,22,.38);
+    z-index:9998;display:flex;align-items:center;justify-content:center;
     animation:fadeIn .15s ease;
   }
-  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-  .modal-box {
-    background:var(--card-bg); border-radius:18px;
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal-box{
+    background:var(--card-bg);border-radius:18px;
     box-shadow:0 16px 60px rgba(44,36,22,.22);
-    padding:28px 32px 24px; min-width:300px; max-width:360px;
+    padding:28px 32px 24px;min-width:320px;max-width:400px;width:100%;
     font-family:'Lato',sans-serif;
   }
-  .modal-box h3 { font-family:'Playfair Display',serif; font-size:1.1rem; margin-bottom:16px; color:var(--ink); }
-  .modal-box label { font-size:.75rem; color:var(--ink-light); text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:5px; }
-  .modal-box input[type="date"] {
-    width:100%; padding:9px 12px; border:1.5px solid #d6cfc4;
-    border-radius:9px; font-size:.88rem; font-family:'Lato',sans-serif;
-    color:var(--ink); background:#fff; outline:none;
-    transition:border-color .2s;
+  .modal-box h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:18px;color:var(--ink);}
+  .form-row{margin-bottom:14px;}
+  .form-row label{font-size:.71rem;color:var(--ink-light);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;}
+  .form-row input[type="text"],
+  .form-row input[type="date"]{
+    width:100%;padding:9px 12px;border:1.5px solid #d6cfc4;
+    border-radius:9px;font-size:.88rem;font-family:'Lato',sans-serif;
+    color:var(--ink);background:#fff;outline:none;transition:border-color .2s;
   }
-  .modal-box input[type="date"]:focus { border-color:#8a7a6a; }
-  .modal-actions { display:flex; gap:10px; margin-top:20px; justify-content:flex-end; }
-  .btn-cancel {
-    padding:7px 18px; border:1.5px solid #d6cfc4; border-radius:20px;
-    background:transparent; cursor:pointer; font-size:.75rem;
-    font-family:'Lato',sans-serif; color:var(--ink-light);
-    transition:background .15s;
+  .form-row input:focus{border-color:#8a7a6a;}
+  .gender-toggle{display:flex;gap:8px;}
+  .gender-btn{
+    flex:1;padding:8px;border:1.5px solid #d6cfc4;border-radius:9px;
+    background:#fff;cursor:pointer;font-family:'Lato',sans-serif;font-size:.80rem;
+    color:var(--ink-light);display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:all .15s;
   }
-  .btn-cancel:hover { background:#f0e8dc; }
-  .btn-save {
-    padding:7px 20px; border:none; border-radius:20px;
-    background:var(--ink); color:#fff; cursor:pointer;
-    font-size:.75rem; font-family:'Lato',sans-serif;
-    letter-spacing:.06em; transition:background .15s;
+  .gender-btn svg{width:16px;height:16px;}
+  .gender-btn.active-m{border-color:var(--male);background:var(--male-light);color:var(--male);}
+  .gender-btn.active-m svg{fill:var(--male);}
+  .gender-btn.active-f{border-color:var(--female);background:var(--female-light);color:var(--female);}
+  .gender-btn.active-f svg{fill:var(--female);}
+  .gender-btn:not(.active-m):not(.active-f) svg{fill:var(--ink-light);}
+
+  .photo-upload-area{
+    border:1.5px dashed #c8bfb0;border-radius:9px;padding:14px;
+    text-align:center;cursor:pointer;transition:all .15s;color:var(--ink-light);
+    font-size:.78rem;
   }
-  .btn-save:hover { background:#5a3a20; }
-  .btn-clear {
-    padding:7px 16px; border:1.5px solid #e0aaaa; border-radius:20px;
-    background:transparent; cursor:pointer; font-size:.75rem;
-    font-family:'Lato',sans-serif; color:#c06060;
-    transition:background .15s; margin-right:auto;
+  .photo-upload-area:hover{border-color:#8a7a6a;background:#f8f4ee;}
+  .photo-preview{width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 6px;display:block;}
+
+  .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
+  .btn-cancel{
+    padding:7px 18px;border:1.5px solid #d6cfc4;border-radius:20px;
+    background:transparent;cursor:pointer;font-size:.75rem;
+    font-family:'Lato',sans-serif;color:var(--ink-light);transition:background .15s;
   }
-  .btn-clear:hover { background:#fdf0f0; }
+  .btn-cancel:hover{background:#f0e8dc;}
+  .btn-save{
+    padding:7px 20px;border:none;border-radius:20px;
+    background:var(--ink);color:#fff;cursor:pointer;font-size:.75rem;
+    font-family:'Lato',sans-serif;letter-spacing:.06em;transition:background .15s;
+  }
+  .btn-save:hover{background:#5a3a20;}
+  .btn-clear{
+    padding:7px 16px;border:1.5px solid #e0aaaa;border-radius:20px;
+    background:transparent;cursor:pointer;font-size:.75rem;
+    font-family:'Lato',sans-serif;color:#c06060;transition:background .15s;margin-right:auto;
+  }
+  .btn-clear:hover{background:#fdf0f0;}
+
+  /* ── LINK PICKER ── */
+  #link-picker-overlay{
+    position:fixed;inset:0;background:rgba(44,36,22,.18);
+    z-index:9990;cursor:default;
+  }
+  .link-banner{
+    position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;border-radius:30px;
+    padding:12px 26px;font-size:.82rem;font-family:'Lato',sans-serif;
+    box-shadow:0 8px 32px rgba(44,36,22,.3);z-index:9997;
+    display:flex;align-items:center;gap:16px;letter-spacing:.04em;
+    animation:slideUp .2s ease;white-space:nowrap;
+  }
+  @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+  .link-banner button{
+    background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+    color:#fff;border-radius:16px;padding:5px 14px;font-size:.74rem;
+    cursor:pointer;font-family:'Lato',sans-serif;transition:background .15s;
+  }
+  .link-banner button:hover{background:rgba(255,255,255,.3);}
+
+  /* Relationship option buttons */
+  .rel-opt-btn{
+    width:100%;display:flex;align-items:center;gap:14px;
+    padding:12px 14px;border:1.5px solid #d6cfc4;border-radius:12px;
+    background:#fff;cursor:pointer;font-family:'Lato',sans-serif;
+    text-align:left;transition:all .15s;
+  }
+  .rel-opt-btn:hover{border-color:var(--accent);background:#f8f4ee;transform:translateX(2px);}
+  .rel-opt-btn.active{border-color:var(--accent);background:#f0e8dc;}
+  .rel-opt-icon{font-size:1.4rem;flex-shrink:0;line-height:1;}
+  .rel-opt-text{display:flex;flex-direction:column;gap:2px;}
+  .rel-opt-text strong{font-size:.82rem;color:var(--ink);}
+  .rel-opt-text span{font-size:.71rem;color:var(--ink-light);}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Family Tree</h1>
-  <p>Munoz &middot; Delos Reyes &middot; Miranda Panlilio &middot; Related Families</p>
-  <div class="hint">Click to highlight lineage &nbsp;·&nbsp; Right-click icon to add photo &nbsp;·&nbsp; Right-click date to edit DOB</div>
-  <button id="deselect-btn" onclick="deselectAll()">✕ Clear Selection</button>
+  <div class="header-left"></div>
+  <div class="header-center">
+    <h1>Family Tree</h1>
+    <p>Munoz &middot; Delos Reyes &middot; Miranda Panlilio &middot; Related Families</p>
+    <div class="hint">Click to highlight lineage &nbsp;·&nbsp; Right-click a person for options</div>
+  </div>
+  <div class="header-right">
+    <button id="add-person-btn" onclick="openAddPersonModal()">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      Add Person
+    </button>
+    <button id="deselect-btn" onclick="deselectAll()">✕ Clear Selection</button>
+  </div>
 </header>
 
 <div id="tree-container">
   <div id="tree-wrapper">
     <svg id="lines-svg"></svg>
     <div id="tree-root"></div>
+    <div id="unlinked-block" style="display:none;">
+      <div class="generation-label">Unlinked</div>
+      <div id="unlinked-row" class="generation-row"></div>
+    </div>
   </div>
 </div>
 
@@ -202,175 +257,262 @@
 <div id="ctx-menu" class="ctx-menu" style="display:none"></div>
 
 <!-- DOB Modal -->
-<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="closeModal(event)">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <h3 id="modal-title">Edit Date of Birth</h3>
-    <label>Date of Birth</label>
-    <input type="date" id="modal-date-input">
+<div id="dob-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeDobModal()">
+  <div class="modal-box">
+    <h3 id="dob-modal-title">Edit Date of Birth</h3>
+    <div class="form-row">
+      <label>Date of Birth</label>
+      <input type="date" id="dob-input">
+    </div>
     <div class="modal-actions">
       <button class="btn-clear" onclick="clearDob()">Clear</button>
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-cancel" onclick="closeDobModal()">Cancel</button>
       <button class="btn-save" onclick="saveDob()">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Hidden file input for photo upload -->
+<!-- Edit Name Modal -->
+<div id="name-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeNameModal()">
+  <div class="modal-box">
+    <h3 id="name-modal-title">Edit Name</h3>
+    <div class="form-row">
+      <label>First Name</label>
+      <input type="text" id="name-first-input" placeholder="First name">
+    </div>
+    <div class="form-row">
+      <label>Last Name</label>
+      <input type="text" id="name-last-input" placeholder="Last name">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeNameModal()">Cancel</button>
+      <button class="btn-save" onclick="saveName()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Person Modal -->
+<div id="add-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeAddModal()">
+  <div class="modal-box">
+    <h3>Add Person</h3>
+    <div class="form-row">
+      <label>Gender</label>
+      <div class="gender-toggle">
+        <button class="gender-btn" id="gender-m-btn" onclick="selectGender('M')">
+          <svg viewBox="0 0 24 24"><path d="M14.5 2h5.5v5.5l-2-2-4.2 4.2A6 6 0 1 1 9 3.07L11.5 5.5 14.5 2zM9 8a4 4 0 1 0 0 8A4 4 0 0 0 9 8z"/></svg>
+          Male
+        </button>
+        <button class="gender-btn" id="gender-f-btn" onclick="selectGender('F')">
+          <svg viewBox="0 0 24 24"><path d="M12 2a6 6 0 1 1-3.5 10.8L11 16h1.5v2H11v3H9v-3H7.5v-2H9l-2.5-3.2A6 6 0 0 1 12 2zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
+          Female
+        </button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>First Name</label>
+      <input type="text" id="add-first" placeholder="First name">
+    </div>
+    <div class="form-row">
+      <label>Last Name</label>
+      <input type="text" id="add-last" placeholder="Last name">
+    </div>
+    <div class="form-row">
+      <label>Date of Birth</label>
+      <input type="date" id="add-dob">
+    </div>
+    <div class="form-row">
+      <label>Photo (optional)</label>
+      <div class="photo-upload-area" id="add-photo-area" onclick="document.getElementById('add-photo-input').click()">
+        <span id="add-photo-label">Click to upload photo</span>
+      </div>
+      <input type="file" id="add-photo-input" accept="image/*" style="display:none" onchange="handleAddPhoto(this)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+      <button class="btn-save" onclick="saveNewPerson()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Relationship chooser modal (shown AFTER picking the target person) -->
+<div id="rel-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)cancelRelModal()">
+  <div class="modal-box" style="max-width:380px">
+    <h3 id="rel-modal-title">Choose Relationship</h3>
+    <p id="rel-modal-sub" style="font-size:.78rem;color:var(--ink-light);margin-bottom:18px;line-height:1.5;"></p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="rel-opt-btn" id="rel-parent-btn" onclick="confirmRelationship('parent')">
+        <div class="rel-opt-icon">👨‍👧</div>
+        <div class="rel-opt-text">
+          <strong id="rel-parent-label">Parent of target</strong>
+          <span id="rel-parent-sub"></span>
+        </div>
+      </button>
+      <button class="rel-opt-btn" id="rel-spouse-btn" onclick="confirmRelationship('spouse')">
+        <div class="rel-opt-icon">💑</div>
+        <div class="rel-opt-text">
+          <strong>Spouse / Partner</strong>
+          <span>Link as husband &amp; wife or partners</span>
+        </div>
+      </button>
+      <button class="rel-opt-btn" id="rel-child-btn" onclick="confirmRelationship('child')">
+        <div class="rel-opt-icon">👶</div>
+        <div class="rel-opt-text">
+          <strong id="rel-child-label">Child of target</strong>
+          <span id="rel-child-sub"></span>
+        </div>
+      </button>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn-cancel" onclick="cancelRelModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Link Picker Banner -->
+<div id="link-banner" class="link-banner" style="display:none">
+  <span id="link-banner-text">Click a person to link to</span>
+  <button onclick="cancelLinkPicking()">Cancel</button>
+</div>
+
+<!-- Hidden file inputs -->
 <input type="file" id="photo-file-input" accept="image/*" style="display:none">
 
 <script>
-// ─── DATA ─────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════
 const people = {
-  1:  { id:1,  first:'LEONEL',       last:'MUNOZ',            gender:'M', dob:'1983-04-05', spouse:[2],    father:6,   mother:5   },
-  2:  { id:2,  first:'KATHERINE',    last:'MUNOZ',            gender:'F', dob:'1984-06-13', spouse:[1],    father:12,  mother:13  },
-  3:  { id:3,  first:'ISLA HOPE',    last:'MUNOZ',            gender:'F', dob:'2015-01-23', spouse:[],     father:1,   mother:2   },
-  4:  { id:4,  first:'MAISY GRACE',  last:'MUNOZ',            gender:'F', dob:'2016-09-19', spouse:[],     father:1,   mother:2   },
-  5:  { id:5,  first:'ELENA',        last:'MUNOZ',            gender:'F', dob:'1956-05-18', spouse:[6],    father:null,mother:25  },
-  6:  { id:6,  first:'MARIO',        last:'MUNOZ',            gender:'M', dob:'1954-10-18', spouse:[5],    father:53,  mother:43  },
-  7:  { id:7,  first:'JOSEPH',       last:'MUNOZ',            gender:'M', dob:'1979-08-16', spouse:[8],    father:6,   mother:5   },
-  8:  { id:8,  first:'JAYA',         last:'YOON',             gender:'F', dob:null,         spouse:[7],    father:null,mother:null},
-  9:  { id:9,  first:'CLAIRE',       last:'MUNOZ',            gender:'F', dob:'2015-04-19', spouse:[],     father:7,   mother:8   },
-  10: { id:10, first:'KATHRENE',     last:'MUNOZ',            gender:'F', dob:'1981-06-09', spouse:[],     father:6,   mother:5   },
-  11: { id:11, first:'MARJORIE',     last:'MUNOZ',            gender:'F', dob:'1990-07-25', spouse:[],     father:6,   mother:5   },
-  12: { id:12, first:'SISENANDO',    last:'DELOS REYES',      gender:'M', dob:'1958-03-20', spouse:[13],   father:23,  mother:24  },
-  13: { id:13, first:'TERESITA',     last:'DELOS REYES',      gender:'F', dob:'1959-08-28', spouse:[12],   father:null,mother:null},
-  14: { id:14, first:'MARLON',       last:'DELOS REYES',      gender:'M', dob:'1981-06-19', spouse:[15],   father:null,mother:13  },
-  15: { id:15, first:'ROE',          last:'DELOS REYES',      gender:'F', dob:'1982-06-20', spouse:[14],   father:12,  mother:13  },
-  16: { id:16, first:'EVANGELINE',   last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:14,  mother:15  },
-  17: { id:17, first:'LAWRENCE',     last:'DELOS REYES',      gender:'M', dob:null,         spouse:[],     father:14,  mother:15  },
-  18: { id:18, first:'CHRISTIAN',    last:'DELOS REYES',      gender:'M', dob:null,         spouse:[],     father:14,  mother:15  },
-  19: { id:19, first:'JAMES',        last:'CHIU',             gender:'M', dob:null,         spouse:[20],   father:null,mother:null},
-  20: { id:20, first:'KRISTINE',     last:'CHIU',             gender:'F', dob:'1982-08-23', spouse:[19],   father:12,  mother:13  },
-  21: { id:21, first:'ANNABELLE',    last:'CHIU',             gender:'F', dob:null,         spouse:[],     father:19,  mother:20  },
-  22: { id:22, first:'KAYLENE',      last:'CHIU',             gender:'F', dob:null,         spouse:[],     father:19,  mother:20  },
-  23: { id:23, first:'SISENANDO SR', last:'DELOS REYES',      gender:'M', dob:null,         spouse:[24],   father:null,mother:null},
-  24: { id:24, first:'FLORDELIZA',   last:'DELOS REYES',      gender:'F', dob:null,         spouse:[23],   father:null,mother:null},
-  25: { id:25, first:'EUFRACIA',     last:'MIRANDA PANLILIO', gender:'F', dob:null,         spouse:[54],   father:null,mother:null},
-  26: { id:26, first:'MICHI',        last:'PANLILIO',         gender:'F', dob:null,         spouse:[],     father:54,  mother:25  },
-  27: { id:27, first:'ELLA',         last:'JAVIER',           gender:'F', dob:null,         spouse:[51],   father:null,mother:25  },
-  28: { id:28, first:'EVANGELINE',   last:'GARCIA',           gender:'F', dob:null,         spouse:[55],   father:54,  mother:25  },
-  29: { id:29, first:'EDELMAR',      last:'MIRANDA',          gender:'M', dob:null,         spouse:[],     father:54,  mother:25  },
-  30: { id:30, first:'ELMER',        last:'MIRANDA',          gender:'M', dob:null,         spouse:[57],   father:54,  mother:25  },
-  31: { id:31, first:'ROMEO',        last:'MUNOZ',            gender:'M', dob:null,         spouse:[32],   father:53,  mother:43  },
-  32: { id:32, first:'ERLITA',       last:'MUNOZ',            gender:'F', dob:null,         spouse:[31],   father:null,mother:null},
-  33: { id:33, first:'JULIET',       last:'LACSAMANA',        gender:'F', dob:null,         spouse:[34],   father:53,  mother:43  },
-  34: { id:34, first:'JOSE',         last:'LACSAMANA',        gender:'M', dob:null,         spouse:[33],   father:null,mother:null},
-  35: { id:35, first:'EMMANUEL',     last:'MUNOZ',            gender:'M', dob:null,         spouse:[36],   father:53,  mother:43  },
-  36: { id:36, first:'WILHELMINA',   last:'MUNOZ',            gender:'F', dob:null,         spouse:[35],   father:null,mother:null},
-  37: { id:37, first:'GLORIA',       last:'OCAMPO',           gender:'F', dob:null,         spouse:[38],   father:53,  mother:43  },
-  38: { id:38, first:'VICTORIANO',   last:'OCAMPO',           gender:'M', dob:null,         spouse:[37],   father:null,mother:null},
-  39: { id:39, first:'NENITA',       last:'OCAMPO',           gender:'F', dob:null,         spouse:[40],   father:53,  mother:43  },
-  40: { id:40, first:'EDUARDO',      last:'OCAMPO',           gender:'M', dob:null,         spouse:[39],   father:null,mother:null},
-  41: { id:41, first:'AMELIA',       last:'DEL ROSARIO',      gender:'F', dob:null,         spouse:[42],   father:53,  mother:43  },
-  42: { id:42, first:'BIENVENIDO',   last:'DEL ROSARIO',      gender:'M', dob:null,         spouse:[41],   father:null,mother:null},
-  43: { id:43, first:'IMELDA',       last:'MUNOZ',            gender:'F', dob:null,         spouse:[53],   father:null,mother:null},
-  44: { id:44, first:'ERICO',        last:'MIRANDA',          gender:'M', dob:null,         spouse:[60],   father:54,  mother:25  },
-  45: { id:45, first:'LIGAYA',       last:'NEISH',            gender:'F', dob:null,         spouse:[52],   father:23,  mother:24  },
-  46: { id:46, first:'GIGI',         last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
-  47: { id:47, first:'ZENI',         last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
-  48: { id:48, first:'DEL',          last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
-  49: { id:49, first:'EDGAR',        last:'DELOS REYES',      gender:'M', dob:null,         spouse:[],     father:23,  mother:24  },
-  50: { id:50, first:'NORA',         last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
-  51: { id:51, first:'GERALD',       last:'JAVIER',           gender:'M', dob:null,         spouse:[27],   father:null,mother:null},
-  52: { id:52, first:'JOHN',         last:'NEISH',            gender:'M', dob:null,         spouse:[45],   father:null,mother:null},
-  53: { id:53, first:'SERVILLANO',   last:'MUNOZ',            gender:'M', dob:null,         spouse:[43],   father:null,mother:null},
-  54: { id:54, first:'MARCIANO',     last:'MIRANDA',          gender:'M', dob:null,         spouse:[25],   father:null,mother:null},
-  55: { id:55, first:'ARTHUR',       last:'GARCIA',           gender:'M', dob:null,         spouse:[28],   father:null,mother:null},
-  56: { id:56, first:'EUGENIA',      last:'MIRANDA',          gender:'F', dob:null,         spouse:[],     father:54,  mother:25  },
-  57: { id:57, first:'JOSEPHINE',    last:'MIRANDA',          gender:'F', dob:null,         spouse:[30],   father:null,mother:null},
-  58: { id:58, first:'EMANUEL',      last:'MIRANDA',          gender:'M', dob:null,         spouse:[59],   father:54,  mother:25  },
-  59: { id:59, first:'DIDITH',       last:'MIRANDA',          gender:'F', dob:null,         spouse:[58],   father:null,mother:null},
-  60: { id:60, first:'CONNIE',       last:'MIRANDA',          gender:'F', dob:null,         spouse:[44],   father:null,mother:null},
+  1:  {id:1,  first:'LEONEL',       last:'MUNOZ',            gender:'M', dob:'1983-04-05', spouse:[2],    father:6,   mother:5   },
+  2:  {id:2,  first:'KATHERINE',    last:'MUNOZ',            gender:'F', dob:'1984-06-13', spouse:[1],    father:12,  mother:13  },
+  3:  {id:3,  first:'ISLA HOPE',    last:'MUNOZ',            gender:'F', dob:'2015-01-23', spouse:[],     father:1,   mother:2   },
+  4:  {id:4,  first:'MAISY GRACE',  last:'MUNOZ',            gender:'F', dob:'2016-09-19', spouse:[],     father:1,   mother:2   },
+  5:  {id:5,  first:'ELENA',        last:'MUNOZ',            gender:'F', dob:'1956-05-18', spouse:[6],    father:null,mother:25  },
+  6:  {id:6,  first:'MARIO',        last:'MUNOZ',            gender:'M', dob:'1954-10-18', spouse:[5],    father:53,  mother:43  },
+  7:  {id:7,  first:'JOSEPH',       last:'MUNOZ',            gender:'M', dob:'1979-08-16', spouse:[8],    father:6,   mother:5   },
+  8:  {id:8,  first:'JAYA',         last:'YOON',             gender:'F', dob:null,         spouse:[7],    father:null,mother:null},
+  9:  {id:9,  first:'CLAIRE',       last:'MUNOZ',            gender:'F', dob:'2015-04-19', spouse:[],     father:7,   mother:8   },
+  10: {id:10, first:'KATHRENE',     last:'MUNOZ',            gender:'F', dob:'1981-06-09', spouse:[],     father:6,   mother:5   },
+  11: {id:11, first:'MARJORIE',     last:'MUNOZ',            gender:'F', dob:'1990-07-25', spouse:[],     father:6,   mother:5   },
+  12: {id:12, first:'SISENANDO',    last:'DELOS REYES',      gender:'M', dob:'1958-03-20', spouse:[13],   father:23,  mother:24  },
+  13: {id:13, first:'TERESITA',     last:'DELOS REYES',      gender:'F', dob:'1959-08-28', spouse:[12],   father:null,mother:null},
+  14: {id:14, first:'MARLON',       last:'DELOS REYES',      gender:'M', dob:'1981-06-19', spouse:[15],   father:null,mother:13  },
+  15: {id:15, first:'ROE',          last:'DELOS REYES',      gender:'F', dob:'1982-06-20', spouse:[14],   father:12,  mother:13  },
+  16: {id:16, first:'EVANGELINE',   last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:14,  mother:15  },
+  17: {id:17, first:'LAWRENCE',     last:'DELOS REYES',      gender:'M', dob:null,         spouse:[],     father:14,  mother:15  },
+  18: {id:18, first:'CHRISTIAN',    last:'DELOS REYES',      gender:'M', dob:null,         spouse:[],     father:14,  mother:15  },
+  19: {id:19, first:'JAMES',        last:'CHIU',             gender:'M', dob:null,         spouse:[20],   father:null,mother:null},
+  20: {id:20, first:'KRISTINE',     last:'CHIU',             gender:'F', dob:'1982-08-23', spouse:[19],   father:12,  mother:13  },
+  21: {id:21, first:'ANNABELLE',    last:'CHIU',             gender:'F', dob:null,         spouse:[],     father:19,  mother:20  },
+  22: {id:22, first:'KAYLENE',      last:'CHIU',             gender:'F', dob:null,         spouse:[],     father:19,  mother:20  },
+  23: {id:23, first:'SISENANDO SR', last:'DELOS REYES',      gender:'M', dob:null,         spouse:[24],   father:null,mother:null},
+  24: {id:24, first:'FLORDELIZA',   last:'DELOS REYES',      gender:'F', dob:null,         spouse:[23],   father:null,mother:null},
+  25: {id:25, first:'EUFRACIA',     last:'MIRANDA PANLILIO', gender:'F', dob:null,         spouse:[54],   father:null,mother:null},
+  26: {id:26, first:'MICHI',        last:'PANLILIO',         gender:'F', dob:null,         spouse:[],     father:54,  mother:25  },
+  27: {id:27, first:'ELLA',         last:'JAVIER',           gender:'F', dob:null,         spouse:[51],   father:null,mother:25  },
+  28: {id:28, first:'EVANGELINE',   last:'GARCIA',           gender:'F', dob:null,         spouse:[55],   father:54,  mother:25  },
+  29: {id:29, first:'EDELMAR',      last:'MIRANDA',          gender:'M', dob:null,         spouse:[],     father:54,  mother:25  },
+  30: {id:30, first:'ELMER',        last:'MIRANDA',          gender:'M', dob:null,         spouse:[57],   father:54,  mother:25  },
+  31: {id:31, first:'ROMEO',        last:'MUNOZ',            gender:'M', dob:null,         spouse:[32],   father:53,  mother:43  },
+  32: {id:32, first:'ERLITA',       last:'MUNOZ',            gender:'F', dob:null,         spouse:[31],   father:null,mother:null},
+  33: {id:33, first:'JULIET',       last:'LACSAMANA',        gender:'F', dob:null,         spouse:[34],   father:53,  mother:43  },
+  34: {id:34, first:'JOSE',         last:'LACSAMANA',        gender:'M', dob:null,         spouse:[33],   father:null,mother:null},
+  35: {id:35, first:'EMMANUEL',     last:'MUNOZ',            gender:'M', dob:null,         spouse:[36],   father:53,  mother:43  },
+  36: {id:36, first:'WILHELMINA',   last:'MUNOZ',            gender:'F', dob:null,         spouse:[35],   father:null,mother:null},
+  37: {id:37, first:'GLORIA',       last:'OCAMPO',           gender:'F', dob:null,         spouse:[38],   father:53,  mother:43  },
+  38: {id:38, first:'VICTORIANO',   last:'OCAMPO',           gender:'M', dob:null,         spouse:[37],   father:null,mother:null},
+  39: {id:39, first:'NENITA',       last:'OCAMPO',           gender:'F', dob:null,         spouse:[40],   father:53,  mother:43  },
+  40: {id:40, first:'EDUARDO',      last:'OCAMPO',           gender:'M', dob:null,         spouse:[39],   father:null,mother:null},
+  41: {id:41, first:'AMELIA',       last:'DEL ROSARIO',      gender:'F', dob:null,         spouse:[42],   father:53,  mother:43  },
+  42: {id:42, first:'BIENVENIDO',   last:'DEL ROSARIO',      gender:'M', dob:null,         spouse:[41],   father:null,mother:null},
+  43: {id:43, first:'IMELDA',       last:'MUNOZ',            gender:'F', dob:null,         spouse:[53],   father:null,mother:null},
+  44: {id:44, first:'ERICO',        last:'MIRANDA',          gender:'M', dob:null,         spouse:[60],   father:54,  mother:25  },
+  45: {id:45, first:'LIGAYA',       last:'NEISH',            gender:'F', dob:null,         spouse:[52],   father:23,  mother:24  },
+  46: {id:46, first:'GIGI',         last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
+  47: {id:47, first:'ZENI',         last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
+  48: {id:48, first:'DEL',          last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
+  49: {id:49, first:'EDGAR',        last:'DELOS REYES',      gender:'M', dob:null,         spouse:[],     father:23,  mother:24  },
+  50: {id:50, first:'NORA',         last:'DELOS REYES',      gender:'F', dob:null,         spouse:[],     father:23,  mother:24  },
+  51: {id:51, first:'GERALD',       last:'JAVIER',           gender:'M', dob:null,         spouse:[27],   father:null,mother:null},
+  52: {id:52, first:'JOHN',         last:'NEISH',            gender:'M', dob:null,         spouse:[45],   father:null,mother:null},
+  53: {id:53, first:'SERVILLANO',   last:'MUNOZ',            gender:'M', dob:null,         spouse:[43],   father:null,mother:null},
+  54: {id:54, first:'MARCIANO',     last:'MIRANDA',          gender:'M', dob:null,         spouse:[25],   father:null,mother:null},
+  55: {id:55, first:'ARTHUR',       last:'GARCIA',           gender:'M', dob:null,         spouse:[28],   father:null,mother:null},
+  56: {id:56, first:'EUGENIA',      last:'MIRANDA',          gender:'F', dob:null,         spouse:[],     father:54,  mother:25  },
+  57: {id:57, first:'JOSEPHINE',    last:'MIRANDA',          gender:'F', dob:null,         spouse:[30],   father:null,mother:null},
+  58: {id:58, first:'EMANUEL',      last:'MIRANDA',          gender:'M', dob:null,         spouse:[59],   father:54,  mother:25  },
+  59: {id:59, first:'DIDITH',       last:'MIRANDA',          gender:'F', dob:null,         spouse:[58],   father:null,mother:null},
+  60: {id:60, first:'CONNIE',       last:'MIRANDA',          gender:'F', dob:null,         spouse:[44],   father:null,mother:null},
 };
+let nextId = 61;
 
-// Runtime state (overrides from editing)
-const dobOverrides   = {};  // id -> 'YYYY-MM-DD' or null
-const photoOverrides = {};  // id -> dataURL
-
-// ─── GENERATION LAYOUT ────────────────────────────────────────────────────────
 const genLayout = [
   {
-    label: 'Generation I',
-    units: [
-      { ids:[23,24], children:[12,45,46,47,48,49,50] },
-      { ids:[53,43], children:[6,31,33,35,37,39,41] },
-      { ids:[54,25], children:[26,27,28,29,30,44,56,58] },
+    label:'Generation I',
+    units:[
+      {ids:[23,24],children:[12,45,46,47,48,49,50]},
+      {ids:[53,43],children:[6,31,33,35,37,39,41]},
+      {ids:[54,25],children:[26,27,28,29,30,44,56,58]},
     ]
   },
   {
-    label: 'Generation II',
-    units: [
-      { ids:[52,45] },
-      { ids:[46] },
-      { ids:[47] },
-      { ids:[48] },
-      { ids:[49] },
-      { ids:[50] },
-      { ids:[12,13], children:[15,20,2] },
-      { ids:[31,32] },
-      { ids:[34,33] },
-      { ids:[35,36] },
-      { ids:[38,37] },
-      { ids:[40,39] },
-      { ids:[42,41] },
-      { ids:[6,5],   children:[1,7,10,11] },
-      { ids:[51,27] },
-      { ids:[55,28] },
-      { ids:[30,57] },
-      { ids:[44,60] },
-      { ids:[58,59] },
-      { ids:[29] },
-      { ids:[56] },
-      { ids:[26] },
+    label:'Generation II',
+    units:[
+      {ids:[52,45]},{ids:[46]},{ids:[47]},{ids:[48]},{ids:[49]},{ids:[50]},
+      {ids:[12,13],children:[15,20,2]},
+      {ids:[31,32]},{ids:[34,33]},{ids:[35,36]},{ids:[38,37]},{ids:[40,39]},{ids:[42,41]},
+      {ids:[6,5],children:[1,7,10,11]},
+      {ids:[51,27]},{ids:[55,28]},{ids:[30,57]},{ids:[44,60]},{ids:[58,59]},
+      {ids:[29]},{ids:[56]},{ids:[26]},
     ]
   },
   {
-    label: 'Generation III',
-    units: [
-      { ids:[14,15], children:[16,17,18] },
-      { ids:[19,20], children:[21,22] },
-      { ids:[1,2],   children:[3,4] },
-      { ids:[7,8],   children:[9] },
-      { ids:[10] },
-      { ids:[11] },
+    label:'Generation III',
+    units:[
+      {ids:[14,15],children:[16,17,18]},
+      {ids:[19,20],children:[21,22]},
+      {ids:[1,2],  children:[3,4]},
+      {ids:[7,8],  children:[9]},
+      {ids:[10]},{ids:[11]},
     ]
   },
   {
-    label: 'Generation IV',
-    units: [
-      { ids:[16] },
-      { ids:[17] },
-      { ids:[18] },
-      { ids:[21] },
-      { ids:[22] },
-      { ids:[3] },
-      { ids:[4] },
-      { ids:[9] },
+    label:'Generation IV',
+    units:[
+      {ids:[16]},{ids:[17]},{ids:[18]},
+      {ids:[21]},{ids:[22]},
+      {ids:[3]},{ids:[4]},{ids:[9]},
     ]
   }
 ];
 
-// ─── SVG ICONS ────────────────────────────────────────────────────────────────
-const maleSVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="21" height="21">
-  <path d="M14.5 2h5.5v5.5l-2-2-4.2 4.2A6 6 0 1 1 9 3.07L11.5 5.5 14.5 2zM9 8a4 4 0 1 0 0 8A4 4 0 0 0 9 8z"/>
-</svg>`;
-const femaleSVG = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="21" height="21">
-  <path d="M12 2a6 6 0 1 1-3.5 10.8L11 16h1.5v2H11v3H9v-3H7.5v-2H9l-2.5-3.2A6 6 0 0 1 12 2zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
-</svg>`;
+// Runtime overrides
+const dobOverrides   = {};
+const nameOverrides  = {};  // id -> {first, last}
+const photoOverrides = {};  // id -> dataURL
+const unlinkedIds    = [];  // ids not in any gen
 
-// ─── FORMAT DOB ───────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// SVG ICONS
+// ═══════════════════════════════════════════════════════════════
+const MALE_SVG = `<svg viewBox="0 0 24 24" width="21" height="21"><path d="M14.5 2h5.5v5.5l-2-2-4.2 4.2A6 6 0 1 1 9 3.07L11.5 5.5 14.5 2zM9 8a4 4 0 1 0 0 8A4 4 0 0 0 9 8z"/></svg>`;
+const FEMALE_SVG = `<svg viewBox="0 0 24 24" width="21" height="21"><path d="M12 2a6 6 0 1 1-3.5 10.8L11 16h1.5v2H11v3H9v-3H7.5v-2H9l-2.5-3.2A6 6 0 0 1 12 2zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>`;
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
 function formatDob(dob) {
   if (!dob) return '';
   const d = new Date(dob + 'T00:00:00');
   if (isNaN(d)) return '';
-  return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 }
+function getDob(id)    { return id in dobOverrides  ? dobOverrides[id]  : people[id].dob; }
+function getName(id)   { return id in nameOverrides ? nameOverrides[id] : {first:people[id].first, last:people[id].last}; }
+function getPhoto(id)  { return photoOverrides[id] || null; }
 
-function getDob(id) {
-  return id in dobOverrides ? dobOverrides[id] : people[id].dob;
-}
-
-// ─── DOM BUILD ────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// CARD BUILD + REFRESH
+// ═══════════════════════════════════════════════════════════════
 const nodeEls = {};
 
 function buildCard(id) {
@@ -379,99 +521,120 @@ function buildCard(id) {
   const div = document.createElement('div');
   div.className = 'person-card';
   div.dataset.id = String(id);
-  const isMale = p.gender === 'M';
+  renderCardInner(div, id);
 
-  const iconHtml = `<div class="icon-wrap ${isMale ? 'icon-male' : 'icon-female'}" data-icon-id="${id}">
-    ${isMale ? maleSVG : femaleSVG}
-    ${photoOverrides[id] ? `<img class="photo-img" src="${photoOverrides[id]}">` : ''}
-  </div>`;
-
-  div.innerHTML = `
-    ${iconHtml}
-    <div class="person-name">${p.first}<span class="person-surname">${p.last}</span></div>
-    <div class="person-dob" data-dob-id="${id}">${formatDob(getDob(id)) || '—'}</div>
-  `;
-
-  // Left-click card → select lineage
+  // Left-click on card body → select lineage
   div.addEventListener('click', (e) => {
     if (e.target.closest('.icon-wrap') || e.target.closest('.person-dob')) return;
     selectPerson(id);
   });
-  div.addEventListener('click', (e) => {
-    if (!e.target.closest('.icon-wrap') && !e.target.closest('.person-dob')) selectPerson(id);
-  });
-
   // Right-click on icon → photo menu
   div.querySelector('.icon-wrap').addEventListener('contextmenu', (e) => {
     e.preventDefault(); e.stopPropagation();
-    showPhotoMenu(id, e.clientX, e.clientY);
+    showIconMenu(id, e.clientX, e.clientY);
   });
-
-  // Right-click on DOB → edit DOB menu
+  // Right-click on DOB → DOB menu
   div.querySelector('.person-dob').addEventListener('contextmenu', (e) => {
     e.preventDefault(); e.stopPropagation();
     showDobMenu(id, e.clientX, e.clientY);
+  });
+  // Right-click on card body (not icon/dob) → card menu
+  div.addEventListener('contextmenu', (e) => {
+    if (e.target.closest('.icon-wrap') || e.target.closest('.person-dob')) return;
+    e.preventDefault(); e.stopPropagation();
+    showCardMenu(id, e.clientX, e.clientY);
   });
 
   nodeEls[id] = div;
   return div;
 }
 
+function renderCardInner(div, id) {
+  const p = people[id];
+  const isMale = p.gender === 'M';
+  const nm = getName(id);
+  const photo = getPhoto(id);
+  const photoHtml = photo ? `<img class="photo-img" src="${photo}">` : '';
+  div.innerHTML = `
+    <div class="icon-wrap ${isMale?'icon-male':'icon-female'}" data-icon-id="${id}">
+      ${isMale ? MALE_SVG : FEMALE_SVG}${photoHtml}
+    </div>
+    <div class="person-name">${nm.first}<span class="person-surname">${nm.last}</span></div>
+    <div class="person-dob" data-dob-id="${id}">${formatDob(getDob(id))||'—'}</div>
+  `;
+  // Re-attach sub-element listeners (called from refreshCard too)
+  div.querySelector('.icon-wrap').addEventListener('contextmenu', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    showIconMenu(id, e.clientX, e.clientY);
+  });
+  div.querySelector('.person-dob').addEventListener('contextmenu', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    showDobMenu(id, e.clientX, e.clientY);
+  });
+}
+
 function refreshCard(id) {
   const div = nodeEls[id];
   if (!div) return;
-  const p = people[id];
-  const isMale = p.gender === 'M';
-
-  // Refresh icon (photo)
-  const iconEl = div.querySelector('.icon-wrap');
-  iconEl.innerHTML = (isMale ? maleSVG : femaleSVG);
-  if (photoOverrides[id]) {
-    const img = document.createElement('img');
-    img.className = 'photo-img';
-    img.src = photoOverrides[id];
-    iconEl.appendChild(img);
-  }
-
-  // Refresh DOB
-  const dobEl = div.querySelector('.person-dob');
-  dobEl.textContent = formatDob(getDob(id)) || '—';
+  renderCardInner(div, id);
 }
 
+// ═══════════════════════════════════════════════════════════════
+// BUILD TREE DOM
+// ═══════════════════════════════════════════════════════════════
 const treeRoot = document.getElementById('tree-root');
 
-genLayout.forEach((gen) => {
-  const block = document.createElement('div');
-  block.className = 'gen-block';
-
-  const lbl = document.createElement('div');
-  lbl.className = 'generation-label';
-  lbl.textContent = gen.label;
-  block.appendChild(lbl);
-
-  const row = document.createElement('div');
-  row.className = 'generation-row';
-
-  gen.units.forEach((unit, ui) => {
-    if (ui > 0) {
-      const sp = document.createElement('div');
-      sp.className = 'unit-spacer';
-      row.appendChild(sp);
-    }
-    const unitDiv = document.createElement('div');
-    unitDiv.className = 'couple-unit';
-    unit.ids.forEach(id => {
-      const card = buildCard(id);
-      if (card) unitDiv.appendChild(card);
+function buildGenRows() {
+  treeRoot.innerHTML = '';
+  genLayout.forEach(gen => {
+    const block = document.createElement('div');
+    block.className = 'gen-block';
+    const lbl = document.createElement('div');
+    lbl.className = 'generation-label';
+    lbl.textContent = gen.label;
+    block.appendChild(lbl);
+    const row = document.createElement('div');
+    row.className = 'generation-row';
+    gen.units.forEach((unit, ui) => {
+      if (ui > 0) {
+        const sp = document.createElement('div'); sp.className = 'unit-spacer'; row.appendChild(sp);
+      }
+      const unitDiv = document.createElement('div'); unitDiv.className = 'couple-unit';
+      unit.ids.forEach(id => {
+        if (nodeEls[id]) unitDiv.appendChild(nodeEls[id]);
+        else {
+          const card = buildCard(id);
+          if (card) unitDiv.appendChild(card);
+        }
+      });
+      row.appendChild(unitDiv);
     });
-    row.appendChild(unitDiv);
+    block.appendChild(row);
+    treeRoot.appendChild(block);
   });
+}
 
-  block.appendChild(row);
-  treeRoot.appendChild(block);
-});
+function renderUnlinked() {
+  const block = document.getElementById('unlinked-block');
+  const row   = document.getElementById('unlinked-row');
+  row.innerHTML = '';
+  if (unlinkedIds.length === 0) { block.style.display = 'none'; return; }
+  block.style.display = 'block';
+  unlinkedIds.forEach((id, i) => {
+    if (i > 0) { const sp = document.createElement('div'); sp.className = 'unit-spacer'; row.appendChild(sp); }
+    const unit = document.createElement('div'); unit.className = 'couple-unit';
+    if (nodeEls[id]) unit.appendChild(nodeEls[id]);
+    else { const card = buildCard(id); if (card) unit.appendChild(card); }
+    row.appendChild(unit);
+  });
+}
 
-// ─── LINE DRAWING ─────────────────────────────────────────────────────────────
+buildGenRows();
+renderUnlinked();
+
+// ═══════════════════════════════════════════════════════════════
+// LINE DRAWING
+// ═══════════════════════════════════════════════════════════════
 const svgEl = document.getElementById('lines-svg');
 const NS = 'http://www.w3.org/2000/svg';
 let lineRecords = [];
@@ -479,106 +642,89 @@ let lineRecords = [];
 function getOffsetPos(el, ancestor) {
   let x = 0, y = 0, cur = el;
   while (cur && cur !== ancestor) { x += cur.offsetLeft; y += cur.offsetTop; cur = cur.offsetParent; }
-  return { x, y };
+  return {x, y};
 }
 
 function getIconRect(id) {
-  const el = nodeEls[id];
-  if (!el) return null;
+  const el = nodeEls[id]; if (!el) return null;
   const wrapper = document.getElementById('tree-wrapper');
-  const icon = el.querySelector('.icon-wrap');
+  const icon = el.querySelector('.icon-wrap'); if (!icon) return null;
   const pos = getOffsetPos(icon, wrapper);
   const w = icon.offsetWidth, h = icon.offsetHeight;
-  return { cx: pos.x + w/2, cy: pos.y + h/2, top: pos.y, bottom: pos.y + h };
+  return {cx:pos.x+w/2, cy:pos.y+h/2, top:pos.y, bottom:pos.y+h};
 }
 
 function mkPath(d, stroke, sw, dash, opacity) {
-  const path = document.createElementNS(NS, 'path');
-  path.setAttribute('d', d);
-  path.setAttribute('fill', 'none');
-  path.setAttribute('stroke', stroke || 'var(--line)');
-  path.setAttribute('stroke-width', sw || '1.8');
-  path.setAttribute('stroke-linecap', 'round');
+  const path = document.createElementNS(NS,'path');
+  path.setAttribute('d',d); path.setAttribute('fill','none');
+  path.setAttribute('stroke', stroke||'var(--line)');
+  path.setAttribute('stroke-width', sw||'1.8');
+  path.setAttribute('stroke-linecap','round');
   if (dash)    path.setAttribute('stroke-dasharray', dash);
-  if (opacity != null) path.setAttribute('opacity', String(opacity));
+  if (opacity!=null) path.setAttribute('opacity', String(opacity));
   return path;
 }
 
 function drawAllLines(lineageSet) {
-  svgEl.innerHTML = '';
-  lineRecords = [];
+  svgEl.innerHTML = ''; lineRecords = [];
   const wrapper = document.getElementById('tree-wrapper');
   svgEl.setAttribute('width',  wrapper.scrollWidth  + 60);
   svgEl.setAttribute('height', wrapper.scrollHeight + 60);
 
   genLayout.forEach(gen => {
     gen.units.forEach(unit => {
-      const ids      = unit.ids      || [];
-      const childIds = unit.children || [];
+      const ids = unit.ids||[], childIds = unit.children||[];
 
       // Spouse connector
       if (ids.length === 2) {
         const ra = getIconRect(ids[0]), rb = getIconRect(ids[1]);
         if (ra && rb) {
-          const mx = (ra.cx + rb.cx) / 2, my = (ra.cy + rb.cy) / 2;
-          const path = mkPath(`M ${ra.cx} ${ra.cy} Q ${mx} ${my - 8} ${rb.cx} ${rb.cy}`,
-            'var(--line)', '1.5', '5,3', 0.7);
+          const mx=(ra.cx+rb.cx)/2, my=(ra.cy+rb.cy)/2;
+          const path = mkPath(`M ${ra.cx} ${ra.cy} Q ${mx} ${my-8} ${rb.cx} ${rb.cy}`,'var(--line)','1.5','5,3',0.7);
           svgEl.appendChild(path);
-          lineRecords.push({ path, parentIds: ids, childIds: [] });
+          lineRecords.push({path, parentIds:ids, childIds:[]});
         }
       }
 
-      // Parent → child
+      // Parent → children
       if (childIds.length > 0) {
-        const vParents  = ids.filter(id => nodeEls[id]);
-        const vChildren = childIds.filter(id => nodeEls[id]);
-        if (!vParents.length || !vChildren.length) return;
+        const vP = ids.filter(id=>nodeEls[id]);
+        const vC = childIds.filter(id=>nodeEls[id]);
+        if (!vP.length || !vC.length) return;
+        const pR = vP.map(id=>getIconRect(id)).filter(Boolean);
+        const parentMidX = pR.reduce((s,r)=>s+r.cx,0)/pR.length;
+        const parentBottom = Math.max(...pR.map(r=>r.bottom));
+        const dropY = parentBottom + 30;
+        const cR = vC.map(id=>getIconRect(id)).filter(Boolean);
+        const childCxs = cR.map(r=>r.cx);
+        const childMeetY = Math.min(...cR.map(r=>r.top)) - 20;
 
-        const pRects = vParents.map(id => getIconRect(id)).filter(Boolean);
-        const parentMidX   = pRects.reduce((s,r) => s + r.cx, 0) / pRects.length;
-        const parentBottom = Math.max(...pRects.map(r => r.bottom));
-        const dropY        = parentBottom + 30;
+        const stem = mkPath(`M ${parentMidX} ${parentBottom} L ${parentMidX} ${dropY}`,'var(--line)','1.8');
+        svgEl.appendChild(stem); lineRecords.push({path:stem, parentIds:ids, childIds});
 
-        const cRects   = vChildren.map(id => getIconRect(id)).filter(Boolean);
-        const childCxs = cRects.map(r => r.cx);
-        const childMeetY = Math.min(...cRects.map(r => r.top)) - 20;
-
-        // Stem down
-        const stem = mkPath(`M ${parentMidX} ${parentBottom} L ${parentMidX} ${dropY}`, 'var(--line)', '1.8');
-        svgEl.appendChild(stem);
-        lineRecords.push({ path: stem, parentIds: ids, childIds });
-
-        if (vChildren.length > 1) {
-          const barCx = (Math.min(...childCxs) + Math.max(...childCxs)) / 2;
-          if (Math.abs(parentMidX - barCx) > 4) {
-            const cy1 = dropY + (childMeetY - dropY) * 0.55;
-            const elbow = mkPath(
-              `M ${parentMidX} ${dropY} C ${parentMidX} ${cy1}, ${barCx} ${cy1}, ${barCx} ${childMeetY}`,
-              'var(--line)', '1.8');
-            svgEl.appendChild(elbow);
-            lineRecords.push({ path: elbow, parentIds: ids, childIds });
+        if (vC.length > 1) {
+          const barCx = (Math.min(...childCxs)+Math.max(...childCxs))/2;
+          if (Math.abs(parentMidX-barCx)>4) {
+            const cy1 = dropY+(childMeetY-dropY)*0.55;
+            const elbow = mkPath(`M ${parentMidX} ${dropY} C ${parentMidX} ${cy1}, ${barCx} ${cy1}, ${barCx} ${childMeetY}`,'var(--line)','1.8');
+            svgEl.appendChild(elbow); lineRecords.push({path:elbow, parentIds:ids, childIds});
           }
-          const bus = mkPath(
-            `M ${Math.min(...childCxs)} ${childMeetY} L ${Math.max(...childCxs)} ${childMeetY}`,
-            'var(--line)', '1.8');
-          svgEl.appendChild(bus);
-          lineRecords.push({ path: bus, parentIds: ids, childIds });
+          const bus = mkPath(`M ${Math.min(...childCxs)} ${childMeetY} L ${Math.max(...childCxs)} ${childMeetY}`,'var(--line)','1.8');
+          svgEl.appendChild(bus); lineRecords.push({path:bus, parentIds:ids, childIds});
         }
 
-        vChildren.forEach((cid, i) => {
-          const cr    = cRects[i];
-          const fromX = cr.cx;
-          const fromY = vChildren.length > 1 ? childMeetY : dropY;
+        vC.forEach((cid,i) => {
+          const cr = cR[i];
+          const fromX = cr.cx, fromY = vC.length>1 ? childMeetY : dropY;
           let d;
-          if (vChildren.length > 1 || Math.abs(fromX - parentMidX) < 4) {
+          if (vC.length>1 || Math.abs(fromX-parentMidX)<4) {
             d = `M ${fromX} ${fromY} L ${fromX} ${cr.top}`;
           } else {
-            const midY = (fromY + cr.top) / 2;
+            const midY = (fromY+cr.top)/2;
             d = `M ${fromX} ${fromY} C ${fromX} ${midY}, ${cr.cx} ${midY}, ${cr.cx} ${cr.top}`;
           }
-          const path = mkPath(d, 'var(--line)', '1.8');
-          svgEl.appendChild(path);
-          lineRecords.push({ path, parentIds: ids, childIds: [cid] });
+          const path = mkPath(d,'var(--line)','1.8');
+          svgEl.appendChild(path); lineRecords.push({path, parentIds:ids, childIds:[cid]});
         });
       }
     });
@@ -588,215 +734,543 @@ function drawAllLines(lineageSet) {
 }
 
 function applyLineStyle(lineageSet) {
-  lineRecords.forEach(({ path, parentIds, childIds }) => {
+  lineRecords.forEach(({path, parentIds, childIds}) => {
     if (!lineageSet) {
-      path.setAttribute('stroke', 'var(--line)');
-      path.setAttribute('opacity', '1');
-      path.setAttribute('stroke-width', '1.8');
-      return;
+      path.setAttribute('stroke','var(--line)'); path.setAttribute('opacity','1'); path.setAttribute('stroke-width','1.8'); return;
     }
-    const active = [...parentIds, ...childIds].some(id => lineageSet.has(id));
+    const active = [...parentIds,...childIds].some(id=>lineageSet.has(id));
     if (active) {
-      path.setAttribute('stroke', 'var(--line-active)');
-      path.setAttribute('opacity', '1');
-      path.setAttribute('stroke-width', '2.3');
+      path.setAttribute('stroke','var(--line-active)'); path.setAttribute('opacity','1'); path.setAttribute('stroke-width','2.3');
     } else {
-      path.setAttribute('stroke', '#ccc');
-      path.setAttribute('opacity', '0.15');
-      path.setAttribute('stroke-width', '1.5');
+      path.setAttribute('stroke','#ccc'); path.setAttribute('opacity','0.15'); path.setAttribute('stroke-width','1.5');
     }
   });
 }
 
-// ─── LINEAGE SELECTION ────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// LINEAGE SELECTION
+// ═══════════════════════════════════════════════════════════════
 let selectedId = null;
 
 function getLineage(id) {
   const set = new Set([id]);
   function walkUp(pid) {
-    if (!pid || set.has(pid)) return;
-    set.add(pid);
-    const p = people[pid]; if (!p) return;
-    (p.spouse||[]).forEach(s => { if (!set.has(s)) { set.add(s); walkUp(people[s]?.father); walkUp(people[s]?.mother); }});
+    if (!pid||set.has(pid)) return;
+    set.add(pid); const p=people[pid]; if(!p) return;
+    (p.spouse||[]).forEach(s=>{if(!set.has(s)){set.add(s);walkUp(people[s]?.father);walkUp(people[s]?.mother);}});
     walkUp(p.father); walkUp(p.mother);
   }
   function walkDown(pid) {
-    Object.values(people).forEach(p => {
-      if ((p.father === pid || p.mother === pid) && !set.has(p.id)) {
-        set.add(p.id); (p.spouse||[]).forEach(s => set.add(s)); walkDown(p.id);
+    Object.values(people).forEach(p=>{
+      if((p.father===pid||p.mother===pid)&&!set.has(p.id)){
+        set.add(p.id);(p.spouse||[]).forEach(s=>set.add(s));walkDown(p.id);
       }
     });
   }
-  const p = people[id]; if (!p) return set;
-  (p.spouse||[]).forEach(s => set.add(s));
+  const p=people[id]; if(!p) return set;
+  (p.spouse||[]).forEach(s=>set.add(s));
   walkUp(p.father); walkUp(p.mother);
-  walkDown(id); (p.spouse||[]).forEach(s => walkDown(s));
+  walkDown(id); (p.spouse||[]).forEach(s=>walkDown(s));
   return set;
 }
 
 function selectPerson(id) {
-  if (selectedId === id) { deselectAll(); return; }
+  if (linkPickingActive) { handleLinkPick(id); return; }
+  if (selectedId===id) { deselectAll(); return; }
   selectedId = id;
   document.getElementById('deselect-btn').style.display = 'inline-block';
   const lineage = getLineage(id);
-  Object.entries(nodeEls).forEach(([eid, el]) => {
+  Object.entries(nodeEls).forEach(([eid,el]) => {
     el.classList.remove('selected','selected-lineage','greyed');
-    const n = parseInt(eid);
-    if      (n === id)       el.classList.add('selected','selected-lineage');
+    const n=parseInt(eid);
+    if      (n===id)       el.classList.add('selected','selected-lineage');
     else if (lineage.has(n)) el.classList.add('selected-lineage');
-    else                     el.classList.add('greyed');
+    else                   el.classList.add('greyed');
   });
   drawAllLines(lineage);
 }
 
 function deselectAll() {
-  selectedId = null;
-  document.getElementById('deselect-btn').style.display = 'none';
-  Object.values(nodeEls).forEach(el => el.classList.remove('selected','selected-lineage','greyed'));
+  selectedId=null;
+  document.getElementById('deselect-btn').style.display='none';
+  Object.values(nodeEls).forEach(el=>el.classList.remove('selected','selected-lineage','greyed'));
   drawAllLines(null);
 }
 
-// ─── CONTEXT MENU ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// CONTEXT MENU ENGINE
+// ═══════════════════════════════════════════════════════════════
 const ctxMenu = document.getElementById('ctx-menu');
-let ctxTargetId = null;
 
-function showCtxMenu(x, y, items) {
+function showCtxMenu(x, y, sections) {
   ctxMenu.innerHTML = '';
-  items.forEach((item, i) => {
-    if (item === 'sep') {
-      const sep = document.createElement('div'); sep.className = 'ctx-sep';
-      ctxMenu.appendChild(sep);
-    } else {
-      const el = document.createElement('div');
-      el.className = 'ctx-item';
-      el.innerHTML = `${item.icon || ''}<span>${item.label}</span>`;
-      el.addEventListener('click', () => { hideCtxMenu(); item.action(); });
-      ctxMenu.appendChild(el);
+  sections.forEach((section, si) => {
+    if (si > 0) { const sep=document.createElement('div'); sep.className='ctx-sep'; ctxMenu.appendChild(sep); }
+    if (section.label) {
+      const lbl=document.createElement('div'); lbl.className='ctx-label'; lbl.textContent=section.label; ctxMenu.appendChild(lbl);
     }
-  });
-  ctxMenu.style.display = 'block';
-  // Position: keep within viewport
-  const vw = window.innerWidth, vh = window.innerHeight;
-  let left = x + 4, top = y + 4;
-  ctxMenu.style.left = '0'; ctxMenu.style.top = '0';
-  const mw = ctxMenu.offsetWidth, mh = ctxMenu.offsetHeight;
-  if (left + mw > vw - 8) left = x - mw - 4;
-  if (top  + mh > vh - 8) top  = y - mh - 4;
-  ctxMenu.style.left = left + 'px';
-  ctxMenu.style.top  = top  + 'px';
-}
-
-function hideCtxMenu() { ctxMenu.style.display = 'none'; }
-
-document.addEventListener('click',       hideCtxMenu);
-document.addEventListener('contextmenu', (e) => { if (!e.target.closest('.icon-wrap') && !e.target.closest('.person-dob')) hideCtxMenu(); });
-
-// Photo context menu
-function showPhotoMenu(id, x, y) {
-  ctxTargetId = id;
-  const hasPhoto = !!photoOverrides[id];
-  const items = [
-    {
-      icon: `<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 2a8 8 0 1 1 0 16A8 8 0 0 1 12 4zm-1 4v3H8l4 4 4-4h-3V8h-2zm-5 8v2h10v-2H6z"/></svg>`,
-      label: hasPhoto ? 'Replace Photo' : 'Upload Photo',
-      action: () => triggerPhotoUpload(id)
-    },
-  ];
-  if (hasPhoto) {
-    items.push('sep');
-    items.push({
-      icon: `<svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
-      label: 'Remove Photo',
-      action: () => { delete photoOverrides[id]; refreshCard(id); }
+    section.items.forEach(item => {
+      const el=document.createElement('div');
+      el.className='ctx-item'+(item.danger?' danger':'');
+      el.innerHTML=`${item.icon||''}<span>${item.label}</span>`;
+      el.addEventListener('click',()=>{hideCtxMenu(); item.action();});
+      ctxMenu.appendChild(el);
     });
-  }
-  showCtxMenu(x, y, items);
+  });
+  ctxMenu.style.display='block';
+  const vw=window.innerWidth, vh=window.innerHeight;
+  let left=x+4, top=y+4;
+  ctxMenu.style.left='0'; ctxMenu.style.top='0';
+  const mw=ctxMenu.offsetWidth, mh=ctxMenu.offsetHeight;
+  if (left+mw>vw-8) left=x-mw-4;
+  if (top+mh>vh-8)  top=y-mh-4;
+  ctxMenu.style.left=left+'px'; ctxMenu.style.top=top+'px';
 }
 
-// DOB context menu
+function hideCtxMenu() { ctxMenu.style.display='none'; }
+document.addEventListener('click', hideCtxMenu);
+document.addEventListener('contextmenu', e => {
+  if (!e.target.closest('.person-card')) hideCtxMenu();
+});
+
+// ─── ICON RIGHT-CLICK MENU ────────────────────────────────────
+function showIconMenu(id, x, y) {
+  const hasPhoto = !!photoOverrides[id];
+  showCtxMenu(x, y, [{
+    label:'Photo',
+    items:[
+      { icon:uploadIcon(), label: hasPhoto?'Replace Photo':'Upload Photo', action:()=>triggerPhotoUpload(id) },
+      ...(hasPhoto ? [{ icon:trashIcon(), label:'Remove Photo', danger:true, action:()=>{ delete photoOverrides[id]; refreshCard(id); } }] : [])
+    ]
+  }]);
+}
+
+// ─── DOB RIGHT-CLICK MENU ─────────────────────────────────────
 function showDobMenu(id, x, y) {
-  ctxTargetId = id;
+  showCtxMenu(x, y, [{
+    label:'Date of Birth',
+    items:[
+      { icon:editIcon(), label:'Edit Date of Birth', action:()=>openDobModal(id) }
+    ]
+  }]);
+}
+
+// ─── CARD BODY RIGHT-CLICK MENU ───────────────────────────────
+function showCardMenu(id, x, y) {
+  const nm = getName(id);
   showCtxMenu(x, y, [
     {
-      icon: `<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`,
-      label: 'Edit Date of Birth',
-      action: () => openDobModal(id)
+      label:`${nm.first} ${nm.last}`,
+      items:[
+        { icon:editIcon(),  label:'Edit Name',    action:()=>openNameModal(id)       },
+        { icon:linkIcon(),  label:'Link to person', action:()=>startLinkPicking(id)  },
+      ]
     }
   ]);
 }
 
-// ─── PHOTO UPLOAD ─────────────────────────────────────────────────────────────
+// ─── ICON HELPERS ─────────────────────────────────────────────
+function editIcon()   { return `<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`; }
+function trashIcon()  { return `<svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`; }
+function uploadIcon() { return `<svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5z"/></svg>`; }
+function linkIcon()   { return `<svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>`; }
+
+// ═══════════════════════════════════════════════════════════════
+// PHOTO UPLOAD
+// ═══════════════════════════════════════════════════════════════
 const photoInput = document.getElementById('photo-file-input');
 let photoTargetId = null;
 
 function triggerPhotoUpload(id) {
-  photoTargetId = id;
-  photoInput.value = '';
-  photoInput.click();
+  photoTargetId = id; photoInput.value = ''; photoInput.click();
 }
 
 photoInput.addEventListener('change', () => {
   const file = photoInput.files[0];
   if (!file || !photoTargetId) return;
   const reader = new FileReader();
-  reader.onload = (e) => {
-    photoOverrides[photoTargetId] = e.target.result;
-    refreshCard(photoTargetId);
-    photoTargetId = null;
-  };
+  reader.onload = e => { photoOverrides[photoTargetId]=e.target.result; refreshCard(photoTargetId); photoTargetId=null; };
   reader.readAsDataURL(file);
 });
 
-// ─── DOB MODAL ────────────────────────────────────────────────────────────────
-const modalOverlay  = document.getElementById('modal-overlay');
-const modalInput    = document.getElementById('modal-date-input');
-const modalTitle    = document.getElementById('modal-title');
-let modalTargetId   = null;
+// ═══════════════════════════════════════════════════════════════
+// DOB MODAL
+// ═══════════════════════════════════════════════════════════════
+let dobTargetId = null;
 
 function openDobModal(id) {
-  modalTargetId = id;
-  const p = people[id];
-  modalTitle.textContent = `Edit DOB — ${p.first} ${p.last}`;
-  const cur = getDob(id);
-  modalInput.value = cur || '';
-  modalOverlay.style.display = 'flex';
-  setTimeout(() => modalInput.focus(), 50);
+  dobTargetId = id;
+  const nm = getName(id);
+  document.getElementById('dob-modal-title').textContent = `Edit DOB — ${nm.first} ${nm.last}`;
+  document.getElementById('dob-input').value = getDob(id)||'';
+  document.getElementById('dob-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('dob-input').focus(),50);
 }
-
-function closeModal(e) {
-  if (e && e.target !== modalOverlay) return;
-  modalOverlay.style.display = 'none';
-  modalTargetId = null;
-}
-
+function closeDobModal() { document.getElementById('dob-modal').style.display='none'; dobTargetId=null; }
 function saveDob() {
-  if (modalTargetId == null) return;
-  const val = modalInput.value;
-  dobOverrides[modalTargetId] = val || null;
-  refreshCard(modalTargetId);
-  modalOverlay.style.display = 'none';
-  modalTargetId = null;
+  if (dobTargetId==null) return;
+  dobOverrides[dobTargetId] = document.getElementById('dob-input').value || null;
+  refreshCard(dobTargetId); closeDobModal();
 }
-
 function clearDob() {
-  if (modalTargetId == null) return;
-  dobOverrides[modalTargetId] = null;
-  refreshCard(modalTargetId);
-  modalOverlay.style.display = 'none';
-  modalTargetId = null;
+  if (dobTargetId==null) return;
+  dobOverrides[dobTargetId]=null; refreshCard(dobTargetId); closeDobModal();
 }
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') { closeModal(); hideCtxMenu(); }
-  if (e.key === 'Enter' && modalOverlay.style.display === 'flex') saveDob();
+// ═══════════════════════════════════════════════════════════════
+// EDIT NAME MODAL
+// ═══════════════════════════════════════════════════════════════
+let nameTargetId = null;
+
+function openNameModal(id) {
+  nameTargetId = id;
+  const nm = getName(id);
+  document.getElementById('name-modal-title').textContent = `Edit Name`;
+  document.getElementById('name-first-input').value = nm.first;
+  document.getElementById('name-last-input').value  = nm.last;
+  document.getElementById('name-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('name-first-input').focus(),50);
+}
+function closeNameModal() { document.getElementById('name-modal').style.display='none'; nameTargetId=null; }
+function saveName() {
+  if (nameTargetId==null) return;
+  const first = document.getElementById('name-first-input').value.trim().toUpperCase();
+  const last  = document.getElementById('name-last-input').value.trim().toUpperCase();
+  if (!first && !last) { closeNameModal(); return; }
+  nameOverrides[nameTargetId] = { first: first||getName(nameTargetId).first, last: last||getName(nameTargetId).last };
+  refreshCard(nameTargetId); closeNameModal();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ADD PERSON MODAL
+// ═══════════════════════════════════════════════════════════════
+let newPersonGender = null;
+let newPersonPhoto  = null;
+
+function openAddPersonModal() {
+  newPersonGender = null; newPersonPhoto = null;
+  document.getElementById('add-first').value = '';
+  document.getElementById('add-last').value  = '';
+  document.getElementById('add-dob').value   = '';
+  document.getElementById('add-photo-label').textContent = 'Click to upload photo';
+  const area = document.getElementById('add-photo-area');
+  const existing = area.querySelector('img');
+  if (existing) existing.remove();
+  document.getElementById('gender-m-btn').className='gender-btn';
+  document.getElementById('gender-f-btn').className='gender-btn';
+  document.getElementById('add-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('add-first').focus(),50);
+}
+function closeAddModal() { document.getElementById('add-modal').style.display='none'; }
+
+function selectGender(g) {
+  newPersonGender = g;
+  document.getElementById('gender-m-btn').className = 'gender-btn'+(g==='M'?' active-m':'');
+  document.getElementById('gender-f-btn').className = 'gender-btn'+(g==='F'?' active-f':'');
+}
+
+function handleAddPhoto(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    newPersonPhoto = e.target.result;
+    const area = document.getElementById('add-photo-area');
+    const existing = area.querySelector('img'); if (existing) existing.remove();
+    const img = document.createElement('img');
+    img.className='photo-preview'; img.src=newPersonPhoto;
+    area.insertBefore(img, area.firstChild);
+    document.getElementById('add-photo-label').textContent='Change photo';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveNewPerson() {
+  const first = document.getElementById('add-first').value.trim().toUpperCase();
+  const last  = document.getElementById('add-last').value.trim().toUpperCase();
+  if (!first || !last) { alert('Please enter a first and last name.'); return; }
+  if (!newPersonGender) { alert('Please select a gender.'); return; }
+  const dob = document.getElementById('add-dob').value || null;
+  const id = nextId++;
+  people[id] = { id, first, last, gender:newPersonGender, dob, spouse:[], father:null, mother:null };
+  if (newPersonPhoto) photoOverrides[id] = newPersonPhoto;
+  unlinkedIds.push(id);
+  const card = buildCard(id);
+  closeAddModal();
+  renderUnlinked();
+  setTimeout(()=>{ drawAllLines(selectedId?getLineage(selectedId):null); },100);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHANGE LINK — new flow:
+//   1. Right-click → "Link to person" → enter pick mode immediately
+//   2. User clicks a target card → relationship modal appears
+//   3. User picks Parent / Spouse / Child → tree rebuilds
+// ═══════════════════════════════════════════════════════════════
+let linkSourceId      = null;
+let linkTargetId      = null;
+let linkPickingActive = false;
+
+// ── Step 1: enter pick mode ────────────────────────────────────
+function startLinkPicking(srcId) {
+  linkSourceId = srcId;
+  linkPickingActive = true;
+  const nm = getName(srcId);
+  document.getElementById('link-banner-text').textContent =
+    `Linking "${nm.first} ${nm.last}" — click the person to link to`;
+  document.getElementById('link-banner').style.display = 'flex';
+
+  // Highlight source, make all others appear as clickable targets
+  Object.entries(nodeEls).forEach(([eid, el]) => {
+    el.classList.remove('greyed','selected','selected-lineage','link-target-hover');
+    const nid = parseInt(eid);
+    if (nid === srcId) el.classList.add('selected');
+    else               el.classList.add('link-target-hover');
+  });
+
+  document.getElementById('tree-wrapper').addEventListener('click', onTreeClickForLink, true);
+}
+
+// ── Step 2: user clicked a target card ────────────────────────
+function onTreeClickForLink(e) {
+  const card = e.target.closest('.person-card');
+  if (!card) return;
+  e.stopPropagation(); e.preventDefault();
+  const tgtId = parseInt(card.dataset.id);
+  if (tgtId === linkSourceId) { cancelLinkPicking(); return; }
+  linkTargetId = tgtId;
+  showRelModal(linkSourceId, tgtId);
+}
+
+// ── Step 3: relationship modal ─────────────────────────────────
+function showRelModal(srcId, tgtId) {
+  // Hide banner while modal is open
+  document.getElementById('link-banner').style.display = 'none';
+
+  const srcNm = getName(srcId), tgtNm = getName(tgtId);
+  document.getElementById('rel-modal-title').textContent = 'Choose Relationship';
+  document.getElementById('rel-modal-sub').textContent =
+    `How is "${srcNm.first} ${srcNm.last}" related to "${tgtNm.first} ${tgtNm.last}"?`;
+
+  document.getElementById('rel-parent-label').textContent =
+    `${srcNm.first} is a parent of ${tgtNm.first}`;
+  document.getElementById('rel-parent-sub').textContent =
+    `${tgtNm.first} becomes a child of ${srcNm.first}`;
+
+  document.getElementById('rel-child-label').textContent =
+    `${srcNm.first} is a child of ${tgtNm.first}`;
+  document.getElementById('rel-child-sub').textContent =
+    `${srcNm.first} becomes a child of ${tgtNm.first}`;
+
+  // Reset button highlights
+  ['rel-parent-btn','rel-spouse-btn','rel-child-btn'].forEach(id =>
+    document.getElementById(id).classList.remove('active'));
+
+  document.getElementById('rel-modal').style.display = 'flex';
+}
+
+function cancelRelModal() {
+  document.getElementById('rel-modal').style.display = 'none';
+  // Return to pick mode
+  document.getElementById('link-banner').style.display = 'flex';
+  linkTargetId = null;
+}
+
+// ── Step 4: apply the chosen relationship ─────────────────────
+function confirmRelationship(type) {
+  document.getElementById('rel-modal').style.display = 'none';
+  applyLink(linkSourceId, linkTargetId, type);
+}
+
+function applyLink(srcId, tgtId, type) {
+  const src = people[srcId], tgt = people[tgtId];
+  if (!src || !tgt) { cancelLinkPicking(); return; }
+
+  if (type === 'spouse') {
+    if (!src.spouse.includes(tgtId)) src.spouse.push(tgtId);
+    if (!tgt.spouse.includes(srcId)) tgt.spouse.push(srcId);
+    placeCoupleInLayout(srcId, tgtId);
+
+  } else if (type === 'parent') {
+    // src is a parent → tgt becomes their child
+    if (src.gender === 'M') { if (!tgt.father) tgt.father = srcId; }
+    else                    { if (!tgt.mother) tgt.mother = srcId; }
+    addChildToParentUnit(srcId, tgtId);
+
+  } else if (type === 'child') {
+    // src is a child → tgt becomes their parent
+    if (tgt.gender === 'M') { if (!src.father) src.father = tgtId; }
+    else                    { if (!src.mother) src.mother = tgtId; }
+    addChildToParentUnit(tgtId, srcId);
+  }
+
+  // Remove srcId from unlinked if present
+  const ui = unlinkedIds.indexOf(srcId);
+  if (ui !== -1) unlinkedIds.splice(ui, 1);
+  const ui2 = unlinkedIds.indexOf(tgtId);
+  if (ui2 !== -1) unlinkedIds.splice(ui2, 1);
+
+  finishLinkPicking();
+}
+
+// ── Layout helpers ─────────────────────────────────────────────
+
+function placeCoupleInLayout(aId, bId) {
+  // Already together?
+  for (const gen of genLayout)
+    for (const unit of gen.units)
+      if (unit.ids.includes(aId) && unit.ids.includes(bId)) return;
+
+  const genOfA = findGenOfId(aId), genOfB = findGenOfId(bId);
+  // Use whichever is already placed; prefer aId's gen
+  const targetGenIdx = genOfA !== -1 ? genOfA : (genOfB !== -1 ? genOfB : genLayout.length - 1);
+
+  // Move the one NOT already in a generation row into the same gen as the other
+  if (genOfA === -1 && genOfB !== -1) {
+    // bId is placed, bring aId into bId's gen
+    removeSoloFromLayout(aId);
+    insertNextToInLayout(bId, aId, targetGenIdx);
+  } else if (genOfB === -1 && genOfA !== -1) {
+    removeSoloFromLayout(bId);
+    insertNextToInLayout(aId, bId, targetGenIdx);
+  } else {
+    // Both placed — merge into a couple unit
+    removeSoloFromLayout(aId);
+    removeSoloFromLayout(bId);
+    // Insert couple unit right after the last unit of the target gen
+    genLayout[targetGenIdx].units.push({ ids:[aId, bId] });
+  }
+}
+
+function insertNextToInLayout(anchorId, newId, genIdx) {
+  // Find the unit containing anchorId and merge newId into it as a couple
+  const gen = genLayout[genIdx];
+  for (let i = 0; i < gen.units.length; i++) {
+    const unit = gen.units[i];
+    if (unit.ids.includes(anchorId)) {
+      if (unit.ids.length === 1) {
+        unit.ids.push(newId);  // upgrade solo → couple
+      } else {
+        // Already a couple — insert adjacent as new solo unit right after
+        gen.units.splice(i + 1, 0, { ids:[newId] });
+      }
+      return;
+    }
+  }
+  // Fallback: just append
+  gen.units.push({ ids:[newId] });
+}
+
+function addChildToParentUnit(parentId, childId) {
+  // Find the unit containing parentId
+  for (let gi = 0; gi < genLayout.length; gi++) {
+    for (const unit of genLayout[gi].units) {
+      if (unit.ids.includes(parentId)) {
+        if (!unit.children) unit.children = [];
+        if (!unit.children.includes(childId)) unit.children.push(childId);
+        // Place childId in the next generation
+        placeInGen(childId, gi + 1);
+        return;
+      }
+    }
+  }
+}
+
+function placeInGen(id, genIdx) {
+  // Ensure the generation exists
+  while (genLayout.length <= genIdx) {
+    genLayout.push({ label: `Generation ${toRoman(genLayout.length + 1)}`, units: [] });
+  }
+  // Already there? Skip
+  for (const unit of genLayout[genIdx].units)
+    if (unit.ids.includes(id)) return;
+
+  // Remove from any OTHER gen first
+  removeFromAllGens(id);
+
+  genLayout[genIdx].units.push({ ids:[id] });
+}
+
+function removeFromAllGens(id) {
+  for (const gen of genLayout) {
+    for (let i = gen.units.length - 1; i >= 0; i--) {
+      const u = gen.units[i];
+      const idx = u.ids.indexOf(id);
+      if (idx !== -1) {
+        if (u.ids.length === 1) {
+          gen.units.splice(i, 1);       // remove solo unit entirely
+        } else {
+          u.ids.splice(idx, 1);         // remove from couple, leaves solo
+        }
+        return;
+      }
+    }
+  }
+}
+
+function removeSoloFromLayout(id) {
+  for (const gen of genLayout) {
+    for (let i = gen.units.length - 1; i >= 0; i--) {
+      const u = gen.units[i];
+      if (u.ids.length === 1 && u.ids[0] === id) { gen.units.splice(i, 1); return; }
+    }
+  }
+}
+
+function findGenOfId(id) {
+  for (let g = 0; g < genLayout.length; g++)
+    for (const unit of genLayout[g].units)
+      if (unit.ids.includes(id)) return g;
+  return -1;
+}
+
+function toRoman(n) {
+  const vals=[1000,900,500,400,100,90,50,40,10,9,5,4,1];
+  const syms=['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
+  let r=''; vals.forEach((v,i)=>{while(n>=v){r+=syms[i];n-=v;}}); return r;
+}
+
+function cancelLinkPicking() {
+  document.getElementById('rel-modal').style.display = 'none';
+  finishLinkPicking();
+}
+
+function finishLinkPicking() {
+  linkPickingActive = false;
+  linkTargetId = null;
+  document.getElementById('link-banner').style.display = 'none';
+  document.getElementById('tree-wrapper').removeEventListener('click', onTreeClickForLink, true);
+  Object.values(nodeEls).forEach(el =>
+    el.classList.remove('greyed','selected','selected-lineage','link-target-hover'));
+  linkSourceId = null;
+  // Rebuild everything
+  Object.keys(nodeEls).forEach(k => delete nodeEls[parseInt(k)]);
+  Object.keys(people).forEach(id => buildCard(parseInt(id)));
+  buildGenRows();
+  renderUnlinked();
+  setTimeout(() => drawAllLines(null), 200);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeDobModal(); closeNameModal(); closeAddModal();
+    if (document.getElementById('rel-modal').style.display === 'flex') cancelRelModal();
+    if (linkPickingActive) cancelLinkPicking();
+    hideCtxMenu();
+  }
+  if (e.key === 'Enter') {
+    if (document.getElementById('dob-modal').style.display  === 'flex') saveDob();
+    if (document.getElementById('name-modal').style.display === 'flex') saveName();
+  }
 });
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-window.addEventListener('load', () => {
-  // Wait for fonts + layout to fully settle before drawing lines
-  setTimeout(() => drawAllLines(null), 300);
-});
-window.addEventListener('resize', () => drawAllLines(selectedId ? getLineage(selectedId) : null));
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('load', () => setTimeout(()=>drawAllLines(null), 300));
+window.addEventListener('resize', () => drawAllLines(selectedId?getLineage(selectedId):null));
 </script>
 </body>
 </html>
