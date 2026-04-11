@@ -45,6 +45,21 @@
   #add-person-btn:hover{background:#5a3a20;}
   #add-person-btn svg{width:13px;height:13px;fill:#fff;flex-shrink:0;}
 
+  #save-btn{
+    background:#4a7c59;color:#fff;border:none;border-radius:20px;
+    padding:7px 16px;font-size:.72rem;cursor:pointer;font-family:'Lato',sans-serif;
+    letter-spacing:.07em;text-transform:uppercase;transition:background .2s, box-shadow .2s;
+    display:flex;align-items:center;gap:6px;white-space:nowrap;position:relative;
+  }
+  #save-btn:hover{background:#3a6347;}
+  #save-btn svg{flex-shrink:0;}
+  #save-btn.unsaved::after{
+    content:'';position:absolute;top:4px;right:4px;
+    width:7px;height:7px;border-radius:50%;background:#f5d76e;
+    border:1.5px solid rgba(255,255,255,.6);
+  }
+  #save-btn.saved-flash{background:#3a6347;box-shadow:0 0 0 3px rgba(74,124,89,.35);}
+
   /* ── TREE ── */
   #tree-container{padding:40px 60px 100px;min-width:max-content;}
   #tree-wrapper{position:relative;display:inline-block;min-width:100%;}
@@ -222,6 +237,27 @@
   .rel-opt-text{display:flex;flex-direction:column;gap:2px;}
   .rel-opt-text strong{font-size:.82rem;color:var(--ink);}
   .rel-opt-text span{font-size:.71rem;color:var(--ink-light);}
+
+  /* Remove link mode */
+  .person-card.remove-dim { opacity:.15; filter:grayscale(.8); pointer-events:none; }
+  .person-card.remove-connectable {
+    border-color:#e05555;
+    box-shadow:0 0 0 3px rgba(220,60,60,.2);
+    cursor:pointer;
+  }
+  .person-card.remove-connectable:hover {
+    box-shadow:0 0 0 4px rgba(220,60,60,.35), 0 4px 16px rgba(220,60,60,.2);
+    transform:translateY(-2px);
+  }
+  .person-card.remove-source {
+    border-color:var(--ink);
+    box-shadow:0 0 0 3px rgba(90,58,32,.2);
+  }
+  /* SVG line hit targets */
+  .link-hit-area {
+    cursor:pointer;
+    pointer-events:stroke;
+  }
 </style>
 </head>
 <body>
@@ -234,6 +270,10 @@
     <div class="hint">Click to highlight lineage &nbsp;·&nbsp; Right-click a person for options</div>
   </div>
   <div class="header-right">
+    <button id="save-btn" onclick="saveAll()">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="#fff"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z"/></svg>
+      Save
+    </button>
     <button id="add-person-btn" onclick="openAddPersonModal()">
       <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
       Add Person
@@ -372,6 +412,12 @@
 <div id="link-banner" class="link-banner" style="display:none">
   <span id="link-banner-text">Click a person to link to</span>
   <button onclick="cancelLinkPicking()">Cancel</button>
+</div>
+
+<!-- Remove Link Banner -->
+<div id="remove-link-banner" class="link-banner" style="display:none;background:#9b3a3a;">
+  <span id="remove-link-banner-text">Click a connected person or line to remove that link</span>
+  <button onclick="cancelRemoveLinkMode()">Cancel</button>
 </div>
 
 <!-- Hidden file inputs -->
@@ -629,9 +675,6 @@ function renderUnlinked() {
   });
 }
 
-buildGenRows();
-renderUnlinked();
-
 // ═══════════════════════════════════════════════════════════════
 // LINE DRAWING
 // ═══════════════════════════════════════════════════════════════
@@ -840,7 +883,7 @@ function showIconMenu(id, x, y) {
     label:'Photo',
     items:[
       { icon:uploadIcon(), label: hasPhoto?'Replace Photo':'Upload Photo', action:()=>triggerPhotoUpload(id) },
-      ...(hasPhoto ? [{ icon:trashIcon(), label:'Remove Photo', danger:true, action:()=>{ delete photoOverrides[id]; refreshCard(id); } }] : [])
+      ...(hasPhoto ? [{ icon:trashIcon(), label:'Remove Photo', danger:true, action:()=>{ delete photoOverrides[id]; refreshCard(id); markUnsaved(); } }] : [])
     ]
   }]);
 }
@@ -858,15 +901,15 @@ function showDobMenu(id, x, y) {
 // ─── CARD BODY RIGHT-CLICK MENU ───────────────────────────────
 function showCardMenu(id, x, y) {
   const nm = getName(id);
-  showCtxMenu(x, y, [
-    {
-      label:`${nm.first} ${nm.last}`,
-      items:[
-        { icon:editIcon(),  label:'Edit Name',    action:()=>openNameModal(id)       },
-        { icon:linkIcon(),  label:'Link to person', action:()=>startLinkPicking(id)  },
-      ]
-    }
-  ]);
+  const links = getPersonLinks(id);
+  const items = [
+    { icon:editIcon(),  label:'Edit Name',      action:()=>openNameModal(id)      },
+    { icon:linkIcon(),  label:'Link to person', action:()=>startLinkPicking(id)   },
+  ];
+  if (links.length > 0) {
+    items.push({ icon:unlinkIcon(), label:'Remove a link', danger:true, action:()=>startRemoveLinkMode(id) });
+  }
+  showCtxMenu(x, y, [{ label:`${nm.first} ${nm.last}`, items }]);
 }
 
 // ─── ICON HELPERS ─────────────────────────────────────────────
@@ -874,6 +917,7 @@ function editIcon()   { return `<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.
 function trashIcon()  { return `<svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`; }
 function uploadIcon() { return `<svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5z"/></svg>`; }
 function linkIcon()   { return `<svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>`; }
+function unlinkIcon() { return `<svg viewBox="0 0 24 24"><path d="M17 7h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1 0 1.43-.98 2.63-2.31 2.98l1.46 1.46C20.62 15.74 22 14.04 22 12c0-2.76-2.24-5-5-5zm-1 4h-2.19l2 2H16v-2zM2 4.27l3.11 3.11C3.29 8.12 2 9.91 2 12c0 2.76 2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1 0-1.59 1.21-2.9 2.76-3.07L8.73 11H8v2h2.73l2 2H8v1.9h4.46l3.27 3.27 1.27-1.27L3.27 3 2 4.27z"/></svg>`; }
 
 // ═══════════════════════════════════════════════════════════════
 // PHOTO UPLOAD
@@ -910,7 +954,7 @@ function closeDobModal() { document.getElementById('dob-modal').style.display='n
 function saveDob() {
   if (dobTargetId==null) return;
   dobOverrides[dobTargetId] = document.getElementById('dob-input').value || null;
-  refreshCard(dobTargetId); closeDobModal();
+  refreshCard(dobTargetId); closeDobModal(); markUnsaved();
 }
 function clearDob() {
   if (dobTargetId==null) return;
@@ -938,7 +982,7 @@ function saveName() {
   const last  = document.getElementById('name-last-input').value.trim().toUpperCase();
   if (!first && !last) { closeNameModal(); return; }
   nameOverrides[nameTargetId] = { first: first||getName(nameTargetId).first, last: last||getName(nameTargetId).last };
-  refreshCard(nameTargetId); closeNameModal();
+  refreshCard(nameTargetId); closeNameModal(); markUnsaved();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -998,6 +1042,7 @@ function saveNewPerson() {
   closeAddModal();
   renderUnlinked();
   setTimeout(()=>{ drawAllLines(selectedId?getLineage(selectedId):null); },100);
+  markUnsaved();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1009,6 +1054,7 @@ function saveNewPerson() {
 let linkSourceId      = null;
 let linkTargetId      = null;
 let linkPickingActive = false;
+let linkDidChange     = false;
 
 // ── Step 1: enter pick mode ────────────────────────────────────
 function startLinkPicking(srcId) {
@@ -1084,6 +1130,7 @@ function confirmRelationship(type) {
 function applyLink(srcId, tgtId, type) {
   const src = people[srcId], tgt = people[tgtId];
   if (!src || !tgt) { cancelLinkPicking(); return; }
+  linkDidChange = true;
 
   if (type === 'spouse') {
     if (!src.spouse.includes(tgtId)) src.spouse.push(tgtId);
@@ -1248,16 +1295,374 @@ function finishLinkPicking() {
   buildGenRows();
   renderUnlinked();
   setTimeout(() => drawAllLines(null), 200);
+  if (linkDidChange) { markUnsaved(); linkDidChange = false; }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// KEYBOARD
+// REMOVE LINK MODE
 // ═══════════════════════════════════════════════════════════════
+
+// Returns all direct links for a person as {type, otherId, label}
+function getPersonLinks(id) {
+  const p = people[id]; if (!p) return [];
+  const links = [];
+  const nm = id => { const n = getName(id); return `${n.first} ${n.last}`; };
+
+  // Spouses
+  (p.spouse || []).forEach(sid => {
+    if (people[sid]) links.push({ type:'spouse', otherId:sid, label:`Spouse of ${nm(sid)}` });
+  });
+  // Father
+  if (p.father && people[p.father])
+    links.push({ type:'father', otherId:p.father, label:`Child of ${nm(p.father)} (father)` });
+  // Mother
+  if (p.mother && people[p.mother])
+    links.push({ type:'mother', otherId:p.mother, label:`Child of ${nm(p.mother)} (mother)` });
+  // Children (where this person is listed as father or mother)
+  Object.values(people).forEach(q => {
+    if (q.father === id) links.push({ type:'parentOf', otherId:q.id, label:`Parent of ${nm(q.id)}` });
+    else if (q.mother === id) links.push({ type:'parentOf', otherId:q.id, label:`Parent of ${nm(q.id)}` });
+  });
+  return links;
+}
+
+let removeLinkSourceId   = null;
+let removeLinkActive     = false;
+let removeLinkDidChange  = false;
+
+function startRemoveLinkMode(id) {
+  removeLinkSourceId = id;
+  removeLinkActive   = true;
+
+  const links = getPersonLinks(id);
+  const connectedIds = new Set(links.map(l => l.otherId));
+  connectedIds.add(id);
+
+  const nm = getName(id);
+  document.getElementById('remove-link-banner-text').textContent =
+    `"${nm.first} ${nm.last}" — click a highlighted person to remove that link`;
+  document.getElementById('remove-link-banner').style.display = 'flex';
+
+  // Style cards
+  Object.entries(nodeEls).forEach(([eid, el]) => {
+    const nid = parseInt(eid);
+    el.classList.remove('greyed','selected','selected-lineage','link-target-hover',
+                         'remove-dim','remove-connectable','remove-source');
+    if (nid === id)                el.classList.add('remove-source');
+    else if (connectedIds.has(nid)) el.classList.add('remove-connectable');
+    else                            el.classList.add('remove-dim');
+  });
+
+  // Redraw lines with removable highlights
+  drawRemovableLines(id, connectedIds);
+
+  document.getElementById('tree-wrapper').addEventListener('click', onRemoveLinkClick, true);
+}
+
+// Draw lines: connected ones become thick red & clickable, others are faded
+function drawRemovableLines(srcId, connectedIds) {
+  svgEl.innerHTML = ''; lineRecords = [];
+  const wrapper = document.getElementById('tree-wrapper');
+  svgEl.setAttribute('width',  wrapper.scrollWidth  + 60);
+  svgEl.setAttribute('height', wrapper.scrollHeight + 60);
+
+  const p = people[srcId];
+  const links = getPersonLinks(srcId);
+
+  genLayout.forEach(gen => {
+    gen.units.forEach(unit => {
+      const ids = unit.ids || [], childIds = unit.children || [];
+
+      // Spouse connector
+      if (ids.length === 2) {
+        const ra = getIconRect(ids[0]), rb = getIconRect(ids[1]);
+        if (ra && rb) {
+          const mx = (ra.cx+rb.cx)/2, my = (ra.cy+rb.cy)/2;
+          const isRemovable = ids.includes(srcId) && connectedIds.has(ids[0]) && connectedIds.has(ids[1]);
+          // Invisible fat hit-area
+          if (isRemovable) {
+            const hitPath = document.createElementNS(NS, 'path');
+            const d = `M ${ra.cx} ${ra.cy} Q ${mx} ${my-8} ${rb.cx} ${rb.cy}`;
+            hitPath.setAttribute('d', d);
+            hitPath.setAttribute('fill', 'none');
+            hitPath.setAttribute('stroke', 'transparent');
+            hitPath.setAttribute('stroke-width', '18');
+            hitPath.style.cursor = 'pointer';
+            hitPath.setAttribute('pointer-events', 'stroke');
+            const otherId = ids[0] === srcId ? ids[1] : ids[0];
+            hitPath.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); confirmRemoveLink(srcId, otherId, 'spouse'); });
+            svgEl.appendChild(hitPath);
+          }
+          const path = mkPath(
+            `M ${ra.cx} ${ra.cy} Q ${mx} ${my-8} ${rb.cx} ${rb.cy}`,
+            isRemovable ? '#e05555' : '#ddd',
+            isRemovable ? '2.5' : '1.2',
+            isRemovable ? null : null,
+            isRemovable ? 1 : 0.3
+          );
+          if (isRemovable) {
+            path.style.cursor = 'pointer';
+            const otherId = ids[0] === srcId ? ids[1] : ids[0];
+            path.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); confirmRemoveLink(srcId, otherId, 'spouse'); });
+          }
+          svgEl.appendChild(path);
+          lineRecords.push({ path, parentIds: ids, childIds: [] });
+        }
+      }
+
+      // Parent-child lines
+      if (childIds.length > 0) {
+        const vP = ids.filter(id => nodeEls[id]);
+        const vC = childIds.filter(id => nodeEls[id]);
+        if (!vP.length || !vC.length) return;
+
+        const pR = vP.map(id => getIconRect(id)).filter(Boolean);
+        const parentMidX   = pR.reduce((s,r) => s+r.cx, 0) / pR.length;
+        const parentBottom = Math.max(...pR.map(r => r.bottom));
+        const dropY        = parentBottom + 30;
+        const cR           = vC.map(id => getIconRect(id)).filter(Boolean);
+        const childCxs     = cR.map(r => r.cx);
+        const childMeetY   = Math.min(...cR.map(r => r.top)) - 20;
+
+        // Is this a line that involves srcId?
+        const parentInvolved = vP.includes(srcId);
+        const childInvolved  = vC.includes(srcId);
+
+        // Stem
+        const stemActive = parentInvolved || (childInvolved && vP.some(pid => connectedIds.has(pid)));
+        const stem = mkPath(`M ${parentMidX} ${parentBottom} L ${parentMidX} ${dropY}`,
+          stemActive ? '#e05555' : '#ddd', stemActive ? '2.5' : '1.2', null, stemActive ? 1 : 0.3);
+        svgEl.appendChild(stem);
+        lineRecords.push({ path:stem, parentIds:ids, childIds });
+
+        if (vC.length > 1) {
+          const barCx = (Math.min(...childCxs)+Math.max(...childCxs))/2;
+          if (Math.abs(parentMidX-barCx) > 4) {
+            const cy1 = dropY+(childMeetY-dropY)*0.55;
+            const elbowActive = stemActive;
+            const elbow = mkPath(
+              `M ${parentMidX} ${dropY} C ${parentMidX} ${cy1}, ${barCx} ${cy1}, ${barCx} ${childMeetY}`,
+              elbowActive ? '#e05555' : '#ddd', elbowActive ? '2.5' : '1.2', null, elbowActive ? 1 : 0.3);
+            svgEl.appendChild(elbow);
+            lineRecords.push({ path:elbow, parentIds:ids, childIds });
+          }
+          const busActive = stemActive;
+          const bus = mkPath(`M ${Math.min(...childCxs)} ${childMeetY} L ${Math.max(...childCxs)} ${childMeetY}`,
+            busActive ? '#e05555' : '#ddd', busActive ? '2.5' : '1.2', null, busActive ? 1 : 0.3);
+          svgEl.appendChild(bus);
+          lineRecords.push({ path:bus, parentIds:ids, childIds });
+        }
+
+        vC.forEach((cid, i) => {
+          const cr    = cR[i];
+          const fromX = cr.cx, fromY = vC.length > 1 ? childMeetY : dropY;
+          let d;
+          if (vC.length > 1 || Math.abs(fromX-parentMidX) < 4) {
+            d = `M ${fromX} ${fromY} L ${fromX} ${cr.top}`;
+          } else {
+            const midY = (fromY+cr.top)/2;
+            d = `M ${fromX} ${fromY} C ${fromX} ${midY}, ${cr.cx} ${midY}, ${cr.cx} ${cr.top}`;
+          }
+          // Is this specific child-line removable?
+          const lineIsRemovable =
+            (parentInvolved && connectedIds.has(cid)) ||   // src is parent, child is connected
+            (cid === srcId && vP.some(pid => connectedIds.has(pid)));  // src is child
+
+          const path = mkPath(d,
+            lineIsRemovable ? '#e05555' : '#ddd',
+            lineIsRemovable ? '2.5' : '1.2',
+            null,
+            lineIsRemovable ? 1 : 0.3);
+
+          if (lineIsRemovable) {
+            path.style.cursor = 'pointer';
+            // Determine relationship type: is srcId the parent or the child?
+            if (parentInvolved) {
+              // srcId is a parent; cid is the child
+              const childPerson = people[cid];
+              const relType = childPerson.father === srcId ? 'childFather' : 'childMother';
+              path.addEventListener('click', (e) => {
+                e.stopPropagation(); e.preventDefault();
+                confirmRemoveLink(srcId, cid, relType);
+              });
+              // Fat invisible hit area — append BEFORE the visible path
+              const hit = document.createElementNS(NS, 'path');
+              hit.setAttribute('d', d); hit.setAttribute('fill','none');
+              hit.setAttribute('stroke','transparent'); hit.setAttribute('stroke-width','16');
+              hit.setAttribute('pointer-events','stroke'); hit.style.cursor='pointer';
+              hit.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); confirmRemoveLink(srcId, cid, relType); });
+              svgEl.appendChild(hit);
+            } else {
+              // srcId is the child; parent is in vP
+              const parentId = vP.find(pid => pid === people[srcId].father || pid === people[srcId].mother);
+              if (parentId) {
+                const relType = people[srcId].father === parentId ? 'selfFather' : 'selfMother';
+                path.addEventListener('click', (e) => {
+                  e.stopPropagation(); e.preventDefault();
+                  confirmRemoveLink(srcId, parentId, relType);
+                });
+                const hit = document.createElementNS(NS,'path');
+                hit.setAttribute('d',d); hit.setAttribute('fill','none');
+                hit.setAttribute('stroke','transparent'); hit.setAttribute('stroke-width','16');
+                hit.setAttribute('pointer-events','stroke'); hit.style.cursor='pointer';
+                hit.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); confirmRemoveLink(srcId, parentId, relType); });
+                svgEl.appendChild(hit);
+              }
+            }
+          }
+          svgEl.appendChild(path);
+          lineRecords.push({ path, parentIds:ids, childIds:[cid] });
+        });
+      }
+    });
+  });
+}
+
+// Clicking a connected person card during remove-link mode
+function onRemoveLinkClick(e) {
+  const card = e.target.closest('.person-card');
+  if (!card) return;
+  const nid = parseInt(card.dataset.id);
+  if (nid === removeLinkSourceId) { cancelRemoveLinkMode(); return; }
+  if (!card.classList.contains('remove-connectable')) return;
+  e.stopPropagation(); e.preventDefault();
+
+  const src = people[removeLinkSourceId];
+  // Determine the relationship between src and nid
+  if ((src.spouse||[]).includes(nid)) {
+    confirmRemoveLink(removeLinkSourceId, nid, 'spouse');
+  } else if (src.father === nid) {
+    confirmRemoveLink(removeLinkSourceId, nid, 'selfFather');
+  } else if (src.mother === nid) {
+    confirmRemoveLink(removeLinkSourceId, nid, 'selfMother');
+  } else {
+    // nid is a child of src
+    const child = people[nid];
+    const relType = child.father === removeLinkSourceId ? 'childFather' : 'childMother';
+    confirmRemoveLink(removeLinkSourceId, nid, relType);
+  }
+}
+
+function confirmRemoveLink(srcId, otherId, relType) {
+  const srcNm   = getName(srcId);
+  const otherNm = getName(otherId);
+  const relDesc = {
+    spouse:      `Spouse link between ${srcNm.first} and ${otherNm.first}`,
+    selfFather:  `${srcNm.first} as child of ${otherNm.first} (father)`,
+    selfMother:  `${srcNm.first} as child of ${otherNm.first} (mother)`,
+    childFather: `${otherNm.first} as child of ${srcNm.first} (father)`,
+    childMother: `${otherNm.first} as child of ${srcNm.first} (mother)`,
+  }[relType] || 'this link';
+
+  if (!confirm(`Remove link: ${relDesc}?`)) return;
+
+  applyRemoveLink(srcId, otherId, relType);
+}
+
+function applyRemoveLink(srcId, otherId, relType) {
+  const src   = people[srcId];
+  const other = people[otherId];
+  removeLinkDidChange = true;
+
+  if (relType === 'spouse') {
+    src.spouse   = (src.spouse   || []).filter(x => x !== otherId);
+    other.spouse = (other.spouse || []).filter(x => x !== srcId);
+    // Break couple unit — split back to solo units
+    splitCoupleInLayout(srcId, otherId);
+
+  } else if (relType === 'selfFather') {
+    src.father = null;
+    removeChildFromLayoutUnit(otherId, srcId);
+    // Move srcId to unlinked if now parentless and not a parent itself
+    maybeOrphan(srcId);
+
+  } else if (relType === 'selfMother') {
+    src.mother = null;
+    removeChildFromLayoutUnit(otherId, srcId);
+    maybeOrphan(srcId);
+
+  } else if (relType === 'childFather') {
+    other.father = null;
+    removeChildFromLayoutUnit(srcId, otherId);
+    maybeOrphan(otherId);
+
+  } else if (relType === 'childMother') {
+    other.mother = null;
+    removeChildFromLayoutUnit(srcId, otherId);
+    maybeOrphan(otherId);
+  }
+
+  finishRemoveLinkMode();
+}
+
+// Split a couple unit back into two solo units
+function splitCoupleInLayout(aId, bId) {
+  for (const gen of genLayout) {
+    for (let i = 0; i < gen.units.length; i++) {
+      const u = gen.units[i];
+      if (u.ids.includes(aId) && u.ids.includes(bId)) {
+        // Replace with two separate solo units (keep any children on the first one)
+        const childrenA = u.children || [];
+        gen.units.splice(i, 1,
+          { ids:[aId], children: childrenA.length ? childrenA : undefined },
+          { ids:[bId] }
+        );
+        return;
+      }
+    }
+  }
+}
+
+// Remove childId from unit's children list for parentId
+function removeChildFromLayoutUnit(parentId, childId) {
+  for (const gen of genLayout) {
+    for (const unit of gen.units) {
+      if (unit.ids.includes(parentId) && unit.children) {
+        unit.children = unit.children.filter(c => c !== childId);
+        if (unit.children.length === 0) delete unit.children;
+        return;
+      }
+    }
+  }
+}
+
+// If person has no parents left and no children, move to unlinked
+function maybeOrphan(id) {
+  const p = people[id];
+  if (p.father || p.mother) return; // still has a parent
+  // Has children? keep in tree
+  const hasChildren = Object.values(people).some(q => q.father === id || q.mother === id);
+  if (hasChildren) return;
+  // Is a spouse? keep in tree
+  if ((p.spouse||[]).length > 0) return;
+  // Move to unlinked
+  removeFromAllGens(id);
+  if (!unlinkedIds.includes(id)) unlinkedIds.push(id);
+}
+
+function cancelRemoveLinkMode() { finishRemoveLinkMode(); }
+
+function finishRemoveLinkMode() {
+  removeLinkActive = false;
+  removeLinkSourceId = null;
+  document.getElementById('remove-link-banner').style.display = 'none';
+  document.getElementById('tree-wrapper').removeEventListener('click', onRemoveLinkClick, true);
+  Object.values(nodeEls).forEach(el =>
+    el.classList.remove('remove-dim','remove-connectable','remove-source','greyed','selected','selected-lineage'));
+  // Rebuild
+  Object.keys(nodeEls).forEach(k => delete nodeEls[parseInt(k)]);
+  Object.keys(people).forEach(id => buildCard(parseInt(id)));
+  buildGenRows();
+  renderUnlinked();
+  setTimeout(() => drawAllLines(null), 200);
+  if (removeLinkDidChange) { markUnsaved(); removeLinkDidChange = false; }
+}
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeDobModal(); closeNameModal(); closeAddModal();
     if (document.getElementById('rel-modal').style.display === 'flex') cancelRelModal();
     if (linkPickingActive) cancelLinkPicking();
+    if (removeLinkActive)  cancelRemoveLinkMode();
     hideCtxMenu();
   }
   if (e.key === 'Enter') {
@@ -1267,9 +1672,127 @@ document.addEventListener('keydown', e => {
 });
 
 // ═══════════════════════════════════════════════════════════════
+// PERSISTENCE — localStorage
+// ═══════════════════════════════════════════════════════════════
+const STORAGE_KEY = 'familyTree_v1';
+
+function markUnsaved() {
+  document.getElementById('save-btn').classList.add('unsaved');
+}
+
+function saveAll() {
+  const snapshot = {
+    people:        JSON.parse(JSON.stringify(people)),
+    genLayout:     JSON.parse(JSON.stringify(genLayout)),
+    nextId,
+    dobOverrides:  JSON.parse(JSON.stringify(dobOverrides)),
+    nameOverrides: JSON.parse(JSON.stringify(nameOverrides)),
+    photoOverrides: JSON.parse(JSON.stringify(photoOverrides)),
+    unlinkedIds:   [...unlinkedIds],
+  };
+  // Try saving with photos first; if quota exceeded, try without
+  const tryStore = (data) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  };
+  try {
+    tryStore(snapshot);
+  } catch(e) {
+    snapshot.photoOverrides = {};
+    try {
+      tryStore(snapshot);
+      showToast('Saved — photos excluded (storage limit reached)', 'warn');
+      return;
+    } catch(e2) {
+      showToast('Save failed: storage limit exceeded', 'error');
+      return;
+    }
+  }
+  const btn = document.getElementById('save-btn');
+  btn.classList.remove('unsaved');
+  btn.classList.add('saved-flash');
+  setTimeout(() => btn.classList.remove('saved-flash'), 1400);
+  showToast('Saved successfully', 'ok');
+}
+
+function loadSaved() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return false;
+  try {
+    const s = JSON.parse(raw);
+
+    // Restore people (keyed by numeric id)
+    Object.keys(people).forEach(k => delete people[k]);
+    if (s.people) {
+      Object.values(s.people).forEach(p => { people[p.id] = p; });
+    }
+
+    // Restore genLayout
+    genLayout.length = 0;
+    (s.genLayout || []).forEach(g => genLayout.push(g));
+
+    // nextId
+    if (s.nextId) nextId = s.nextId;
+
+    // Restore overrides — keys come back as strings from JSON, coerce to int
+    const coerceKeys = (src, dest) => {
+      Object.keys(dest).forEach(k => delete dest[k]);
+      if (!src) return;
+      Object.entries(src).forEach(([k, v]) => {
+        const nk = isNaN(k) ? k : parseInt(k);
+        dest[nk] = v;
+      });
+    };
+    coerceKeys(s.dobOverrides,   dobOverrides);
+    coerceKeys(s.nameOverrides,  nameOverrides);
+    coerceKeys(s.photoOverrides, photoOverrides);
+
+    // Restore unlinked
+    unlinkedIds.length = 0;
+    (s.unlinkedIds || []).forEach(id => unlinkedIds.push(typeof id === 'string' ? parseInt(id) : id));
+
+    return true;
+  } catch(e) {
+    console.warn('Failed to load saved data:', e);
+    return false;
+  }
+}
+
+// ── Toast notification ─────────────────────────────────────────
+function showToast(msg, type) {
+  const existing = document.getElementById('ft-toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.id = 'ft-toast';
+  const bg = type === 'ok' ? '#4a7c59' : type === 'warn' ? '#9b7c30' : '#9b3a3a';
+  t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:${bg};color:#fff;padding:10px 22px;border-radius:24px;font-size:.78rem;
+    font-family:'Lato',sans-serif;letter-spacing:.05em;box-shadow:0 4px 20px rgba(0,0,0,.2);
+    z-index:9999;animation:slideUp .2s ease;pointer-events:none;`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { if (t.parentNode) t.remove(); }, 2800);
+}
+
+// ── Mark unsaved on every mutation ────────────────────────────
+// saveDob, saveName, saveNewPerson → call markUnsaved() directly
+// finishLinkPicking, finishRemoveLinkMode → call markUnsaved() via didChange flag
+// showIconMenu photo-delete → calls markUnsaved() directly
+// photo-file-input change → listener below
+document.getElementById('photo-file-input').addEventListener('change', markUnsaved);
+
+// ═══════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════
-window.addEventListener('load', () => setTimeout(()=>drawAllLines(null), 300));
+window.addEventListener('load', () => {
+  const hasSaved = loadSaved();
+  // Rebuild cards from (possibly restored) people
+  Object.keys(nodeEls).forEach(k => delete nodeEls[parseInt(k)]);
+  Object.keys(people).forEach(id => buildCard(parseInt(id)));
+  buildGenRows();
+  renderUnlinked();
+  setTimeout(() => drawAllLines(null), 300);
+  if (hasSaved) showToast('Changes loaded from last save', 'ok');
+});
 window.addEventListener('resize', () => drawAllLines(selectedId?getLineage(selectedId):null));
 </script>
 </body>
