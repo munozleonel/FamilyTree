@@ -14,7 +14,7 @@
     --grey-text:#b0a898; --accent:#7a5c3a;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);font-family:'Lato',sans-serif;color:var(--ink);min-height:100vh;overflow-x:auto;}
+  body{background:var(--bg);font-family:'Lato',sans-serif;color:var(--ink);min-height:100vh;overflow:hidden;}
 
   /* ── HEADER ── */
   header{
@@ -60,9 +60,22 @@
   }
   #save-btn.saved-flash{background:#3a6347;box-shadow:0 0 0 3px rgba(74,124,89,.35);}
 
+  .zoom-btn{
+    background:var(--bg2);color:var(--ink);border:1.5px solid #d6cfc4;
+    border-radius:8px;padding:5px 10px;font-size:.88rem;cursor:pointer;
+    font-family:'Lato',sans-serif;transition:background .15s;line-height:1;
+  }
+  .zoom-btn:hover{background:#e8e0d4;}
+
   /* ── TREE ── */
-  #tree-container{padding:40px 60px 100px;min-width:max-content;}
-  #tree-wrapper{position:relative;display:inline-block;min-width:100%;}
+  #tree-container{
+    padding:40px 60px 100px;
+    position:fixed; top:0; left:0;
+    transform-origin:0 0;
+    will-change:transform;
+    pointer-events:auto;
+  }
+  #tree-wrapper{position:relative;display:block;}
   #lines-svg{position:absolute;top:0;left:0;pointer-events:none;z-index:1;overflow:visible;}
   .gen-block{margin-bottom:80px;position:relative;z-index:2;}
   .generation-label{
@@ -70,8 +83,8 @@
     text-transform:uppercase;color:var(--ink-light);margin-bottom:14px;
     padding-left:10px;border-left:3px solid #c8bfb0;
   }
-  .generation-row{display:flex;flex-direction:row;align-items:flex-start;flex-wrap:nowrap;}
-  .couple-unit{display:flex;flex-direction:row;align-items:flex-start;}
+  .generation-row{position:relative;display:block;white-space:nowrap;}
+  .couple-unit{display:inline-flex;flex-direction:row;align-items:flex-start;vertical-align:top;}
   .unit-spacer{width:26px;flex-shrink:0;}
 
   /* Unlinked row */
@@ -267,9 +280,14 @@
   <div class="header-center">
     <h1>Family Tree</h1>
     <p>Munoz &middot; Delos Reyes &middot; Miranda Panlilio &middot; Related Families</p>
-    <div class="hint">Click to highlight lineage &nbsp;·&nbsp; Right-click a person for options</div>
+    <div class="hint">Click to highlight · Right-click for options · Scroll to zoom · Space+drag or middle-click to pan</div>
   </div>
   <div class="header-right">
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button class="zoom-btn" onclick="zoomIn()" title="Zoom in">＋</button>
+      <button class="zoom-btn" id="zoom-reset-btn" onclick="resetZoom()" title="Reset zoom" style="min-width:46px;font-size:.68rem;">FIT</button>
+      <button class="zoom-btn" onclick="zoomOut()" title="Zoom out">－</button>
+    </div>
     <button id="save-btn" onclick="saveAll()">
       <svg viewBox="0 0 24 24" width="13" height="13" fill="#fff"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z"/></svg>
       Save
@@ -629,25 +647,32 @@ function refreshCard(id) {
 // BUILD TREE DOM
 // ═══════════════════════════════════════════════════════════════
 const treeRoot = document.getElementById('tree-root');
+const CARD_W   = 96;   // card width + margins  (88px card + 2*4px margin)
+const CARD_GAP = 26;   // minimum gap between cards
 
 function buildGenRows() {
   treeRoot.innerHTML = '';
   genLayout.forEach(gen => {
     const block = document.createElement('div');
     block.className = 'gen-block';
+    block.dataset.gen = gen.label;
+
     const lbl = document.createElement('div');
     lbl.className = 'generation-label';
     lbl.textContent = gen.label;
     block.appendChild(lbl);
+
     const row = document.createElement('div');
     row.className = 'generation-row';
-    gen.units.forEach((unit, ui) => {
-      if (ui > 0) {
-        const sp = document.createElement('div'); sp.className = 'unit-spacer'; row.appendChild(sp);
-      }
-      const unitDiv = document.createElement('div'); unitDiv.className = 'couple-unit';
+    row.style.position = 'relative'; // for absolute children
+
+    gen.units.forEach(unit => {
+      const unitDiv = document.createElement('div');
+      unitDiv.className = 'couple-unit';
+      unitDiv.dataset.unitIds = unit.ids.join(',');
       unit.ids.forEach(id => {
-        if (nodeEls[id]) unitDiv.appendChild(nodeEls[id]);
+        const existing = nodeEls[id];
+        if (existing) unitDiv.appendChild(existing);
         else {
           const card = buildCard(id);
           if (card) unitDiv.appendChild(card);
@@ -655,10 +680,315 @@ function buildGenRows() {
       });
       row.appendChild(unitDiv);
     });
+
     block.appendChild(row);
     treeRoot.appendChild(block);
   });
 }
+
+// ── Auto-layout: position each generation row so children sit under parents ──
+function applyTreeLayout() {
+  // We collect all gen-block rows in order
+  const blocks = Array.from(treeRoot.querySelectorAll('.gen-block'));
+  if (!blocks.length) return;
+
+  // For each generation, gather its units with their measured widths
+  // We work top-down: Gen 0 positions are free; Gen N+1 positions are derived from Gen N
+
+  // Unit width helper: natural width of the couple-unit div
+  function unitW(unitDiv) {
+    return unitDiv.offsetWidth;
+  }
+
+  // Centre X of a unit relative to its row (before we apply absolute layout)
+  // After we apply layout, we track centres ourselves
+  const genData = []; // [{units:[{div, ids, children, cx, w}], rowEl}]
+
+  blocks.forEach((block, gi) => {
+    const row    = block.querySelector('.generation-row');
+    const unitDivs = Array.from(row.querySelectorAll(':scope > .couple-unit'));
+    const layout  = genLayout[gi];
+    const units   = unitDivs.map((div, ui) => ({
+      div,
+      ids:      layout.units[ui] ? layout.units[ui].ids      : [],
+      children: layout.units[ui] ? (layout.units[ui].children || []) : [],
+      w:        unitW(div),
+      cx:       0,   // to be filled in
+    }));
+    genData.push({ units, row });
+  });
+
+  // ── Pass 1: assign cx for Gen 0 freely (left-to-right) ────────────────────
+  {
+    const units = genData[0].units;
+    let cursor = 0;
+    units.forEach((u, i) => {
+      u.cx = cursor + u.w / 2;
+      cursor += u.w + CARD_GAP;
+    });
+  }
+
+  // ── Pass 2: for each subsequent generation, derive cx from parents ─────────
+  for (let gi = 1; gi < genData.length; gi++) {
+    const parentData = genData[gi - 1];
+    const childData  = genData[gi];
+
+    // Build a map: childId → parent unit cx (the midpoint of its parent couple)
+    const childIdToParentCx = {};
+    parentData.units.forEach(pu => {
+      if (!pu.children.length) return;
+      pu.children.forEach(cid => {
+        childIdToParentCx[cid] = pu.cx;
+      });
+    });
+
+    // For each child unit, compute ideal cx
+    // A unit containing ids [a, b] ideally centres on the midpoint of its parent(s)
+    childData.units.forEach(cu => {
+      // Collect parent cx values for all ids in this unit
+      const parentCxs = cu.ids
+        .map(id => childIdToParentCx[id])
+        .filter(x => x !== undefined);
+      if (parentCxs.length) {
+        cu.cx = parentCxs.reduce((a,b) => a+b, 0) / parentCxs.length;
+      } else {
+        cu.cx = -1; // unanchored — will be placed after anchored ones
+      }
+    });
+
+    // ── Resolve overlaps (left-to-right sweep) ─────────────────────────────
+    // First, handle unanchored units: place them at end
+    let maxCx = 0;
+    childData.units.forEach(cu => { if (cu.cx > 0) maxCx = Math.max(maxCx, cu.cx + cu.w/2); });
+    let cursor = maxCx + CARD_GAP;
+    childData.units.forEach(cu => {
+      if (cu.cx < 0) { cu.cx = cursor + cu.w/2; cursor += cu.w + CARD_GAP; }
+    });
+
+    // Sort by current cx
+    childData.units.sort((a, b) => a.cx - b.cx);
+
+    // Left-to-right: push right if overlapping previous
+    let minLeft = 0;
+    childData.units.forEach((cu, i) => {
+      const left = cu.cx - cu.w / 2;
+      if (left < minLeft) {
+        cu.cx = minLeft + cu.w / 2;
+      }
+      minLeft = cu.cx + cu.w / 2 + CARD_GAP;
+    });
+
+    // Right-to-left: pull left if there's room (centres units over their parents better)
+    // Walk backwards and pull each unit leftward if it doesn't collide with the next
+    for (let i = childData.units.length - 2; i >= 0; i--) {
+      const cu   = childData.units[i];
+      const next = childData.units[i + 1];
+      // Re-collect parent cxs
+      const parentCxs = cu.ids
+        .map(id => childIdToParentCx[id])
+        .filter(x => x !== undefined);
+      if (!parentCxs.length) continue;
+      const idealCx = parentCxs.reduce((a,b) => a+b, 0) / parentCxs.length;
+      const maxRight = next.cx - next.w/2 - CARD_GAP - cu.w/2;
+      if (idealCx < cu.cx && idealCx >= (i > 0 ? childData.units[i-1].cx + childData.units[i-1].w/2 + CARD_GAP + cu.w/2 : 0)) {
+        cu.cx = Math.min(cu.cx, Math.max(idealCx, maxRight < cu.cx ? maxRight : cu.cx));
+      }
+    }
+  }
+
+  // ── Pass 3: Centre every generation around the global tree midpoint ──────────
+  // Find the overall span across ALL generations
+  let globalMin = Infinity, globalMax = -Infinity;
+  genData.forEach(gd => {
+    gd.units.forEach(u => {
+      globalMin = Math.min(globalMin, u.cx - u.w/2);
+      globalMax = Math.max(globalMax, u.cx + u.w/2);
+    });
+  });
+  const globalCx = (globalMin + globalMax) / 2;
+
+  // For each generation, shift its units so their collective centre == globalCx
+  genData.forEach(gd => {
+    if (!gd.units.length) return;
+    const genMin = Math.min(...gd.units.map(u => u.cx - u.w/2));
+    const genMax = Math.max(...gd.units.map(u => u.cx + u.w/2));
+    const genCx  = (genMin + genMax) / 2;
+    const shift  = globalCx - genCx;
+    gd.units.forEach(u => u.cx += shift);
+  });
+
+  // Now shift everything so the leftmost point across all gens is 0
+  let absMin = Infinity;
+  genData.forEach(gd => gd.units.forEach(u => absMin = Math.min(absMin, u.cx - u.w/2)));
+  const globalOffset = absMin < 0 ? -absMin : 0;
+  genData.forEach(gd => gd.units.forEach(u => u.cx += globalOffset));
+
+  // ── Pass 4: apply absolute positions to rows ───────────────────────────────
+  let treeContentWidth = 0;
+  genData.forEach(({ units, row }) => {
+    if (!units.length) return;
+    const rowH = Math.max(...units.map(u => u.div.offsetHeight || 120));
+    row.style.position = 'relative';
+    row.style.height   = rowH + 'px';
+
+    units.forEach(u => {
+      const left = Math.round(u.cx - u.w/2);
+      u.div.style.position = 'absolute';
+      u.div.style.left     = left + 'px';
+      u.div.style.top      = '0';
+      treeContentWidth = Math.max(treeContentWidth, left + u.w);
+    });
+
+    row.style.width    = treeContentWidth + 'px';
+    row.style.minWidth = treeContentWidth + 'px';
+  });
+
+  treeRoot.style.width    = treeContentWidth + 'px';
+  treeRoot.style.minWidth = treeContentWidth + 'px';
+
+  // ── Pass 5: auto-zoom to fit the full tree in the viewport ────────────────
+  autoZoomToFit(treeContentWidth);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ZOOM & PAN
+// ═══════════════════════════════════════════════════════════════
+let currentScale = 1;
+let panX = 0, panY = 0;
+let isPanning = false;
+let panStartX = 0, panStartY = 0, panStartTX = 0, panStartTY = 0;
+
+const MIN_SCALE = 0.15, MAX_SCALE = 2.0;
+
+function applyTransform() {
+  const c = document.getElementById('tree-container');
+  c.style.transform       = `translate(${panX}px, ${panY}px) scale(${currentScale})`;
+  c.style.transformOrigin = '0 0';
+}
+
+function zoomIn()  { scaleAround(window.innerWidth/2, window.innerHeight/2, 1.25); }
+function zoomOut() { scaleAround(window.innerWidth/2, window.innerHeight/2, 0.8);  }
+function resetZoom() {
+  const wrapper = document.getElementById('tree-wrapper');
+  autoZoomToFit(wrapper.offsetWidth || 800);
+}
+
+function scaleAround(cx, cy, factor) {
+  const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale * factor));
+  panX = cx - (cx - panX) * (newScale / currentScale);
+  panY = cy - (cy - panY) * (newScale / currentScale);
+  currentScale = newScale;
+  applyTransform();
+}
+
+function autoZoomToFit(treeW) {
+  const headerH = document.querySelector('header')?.offsetHeight || 80;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight - headerH;
+  const wrapper = document.getElementById('tree-wrapper');
+  const treeH   = wrapper.offsetHeight || 800;
+  const padW    = 80, padH = 60;
+
+  const scaleW  = (vw  - padW) / (treeW  || vw);
+  const scaleH  = (vh  - padH) / (treeH  || vh);
+  const scale   = Math.min(scaleW, scaleH, 1);
+  const clamped = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+
+  currentScale = clamped;
+  // Centre horizontally; place just below header
+  panX = (vw  - treeW  * clamped) / 2;
+  panY = headerH + 20;
+  applyTransform();
+}
+
+// ── Wheel zoom ────────────────────────────────────────────────
+document.addEventListener('wheel', (e) => {
+  if (e.target.closest('.modal-overlay') || e.target.closest('.ctx-menu')) return;
+  e.preventDefault();
+  const delta  = -e.deltaY * 0.001;
+  const factor = Math.exp(delta * 2.5);
+  const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale * factor));
+
+  // Zoom around the cursor position
+  const rect  = document.getElementById('tree-container').getBoundingClientRect();
+  const mouseX = e.clientX;
+  const mouseY = e.clientY;
+  panX = mouseX - (mouseX - panX) * (newScale / currentScale);
+  panY = mouseY - (mouseY - panY) * (newScale / currentScale);
+  currentScale = newScale;
+  applyTransform();
+}, { passive: false });
+
+// ── Pan (middle-mouse or space+drag or two-finger) ────────────
+document.addEventListener('mousedown', (e) => {
+  // Middle mouse or space held + left click
+  if (e.button === 1 || (e.button === 0 && spaceHeld)) {
+    e.preventDefault();
+    isPanning = true;
+    panStartX = e.clientX; panStartY = e.clientY;
+    panStartTX = panX;     panStartTY = panY;
+    document.body.style.cursor = 'grabbing';
+  }
+});
+document.addEventListener('mousemove', (e) => {
+  if (!isPanning) return;
+  panX = panStartTX + (e.clientX - panStartX);
+  panY = panStartTY + (e.clientY - panStartY);
+  applyTransform();
+});
+document.addEventListener('mouseup', () => {
+  if (isPanning) { isPanning = false; document.body.style.cursor = spaceHeld ? 'grab' : ''; }
+});
+
+// ── Space bar to enable grab cursor ──────────────────────────
+let spaceHeld = false;
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && !e.target.matches('input,textarea')) {
+    e.preventDefault();
+    spaceHeld = true;
+    document.body.style.cursor = 'grab';
+  }
+});
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') {
+    spaceHeld = false;
+    if (!isPanning) document.body.style.cursor = '';
+  }
+});
+
+// ── Touch pan & pinch-zoom ────────────────────────────────────
+let lastTouches = null;
+document.addEventListener('touchstart', (e) => {
+  if (e.target.closest('.modal-overlay') || e.target.closest('.ctx-menu')) return;
+  lastTouches = e.touches;
+}, { passive: true });
+document.addEventListener('touchmove', (e) => {
+  if (!lastTouches) return;
+  if (e.target.closest('.modal-overlay') || e.target.closest('.ctx-menu')) return;
+  e.preventDefault();
+  const t = e.touches;
+  if (t.length === 1 && lastTouches.length === 1) {
+    panX += t[0].clientX - lastTouches[0].clientX;
+    panY += t[0].clientY - lastTouches[0].clientY;
+    applyTransform();
+  } else if (t.length === 2 && lastTouches.length >= 2) {
+    const d0 = Math.hypot(lastTouches[0].clientX - lastTouches[1].clientX,
+                          lastTouches[0].clientY - lastTouches[1].clientY);
+    const d1 = Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    if (d0 > 0) {
+      const factor   = d1 / d0;
+      const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale * factor));
+      const midX     = (t[0].clientX + t[1].clientX) / 2;
+      const midY     = (t[0].clientY + t[1].clientY) / 2;
+      panX = midX - (midX - panX) * (newScale / currentScale);
+      panY = midY - (midY - panY) * (newScale / currentScale);
+      currentScale = newScale;
+      applyTransform();
+    }
+  }
+  lastTouches = t;
+}, { passive: false });
+document.addEventListener('touchend', () => { lastTouches = null; });
 
 function renderUnlinked() {
   const block = document.getElementById('unlinked-block');
@@ -672,6 +1002,19 @@ function renderUnlinked() {
     if (nodeEls[id]) unit.appendChild(nodeEls[id]);
     else { const card = buildCard(id); if (card) unit.appendChild(card); }
     row.appendChild(unit);
+  });
+}
+
+// Full rebuild + layout + redraw
+function rebuildTree(lineage) {
+  buildGenRows();
+  renderUnlinked();
+  // Layout needs the DOM to be painted so sizes are available
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      applyTreeLayout();
+      drawAllLines(lineage || null);
+    });
   });
 }
 
@@ -1040,8 +1383,7 @@ function saveNewPerson() {
   unlinkedIds.push(id);
   const card = buildCard(id);
   closeAddModal();
-  renderUnlinked();
-  setTimeout(()=>{ drawAllLines(selectedId?getLineage(selectedId):null); },100);
+  rebuildTree();
   markUnsaved();
 }
 
@@ -1292,9 +1634,7 @@ function finishLinkPicking() {
   // Rebuild everything
   Object.keys(nodeEls).forEach(k => delete nodeEls[parseInt(k)]);
   Object.keys(people).forEach(id => buildCard(parseInt(id)));
-  buildGenRows();
-  renderUnlinked();
-  setTimeout(() => drawAllLines(null), 200);
+  rebuildTree();
   if (linkDidChange) { markUnsaved(); linkDidChange = false; }
 }
 
@@ -1652,9 +1992,7 @@ function finishRemoveLinkMode() {
   // Rebuild
   Object.keys(nodeEls).forEach(k => delete nodeEls[parseInt(k)]);
   Object.keys(people).forEach(id => buildCard(parseInt(id)));
-  buildGenRows();
-  renderUnlinked();
-  setTimeout(() => drawAllLines(null), 200);
+  rebuildTree();
   if (removeLinkDidChange) { markUnsaved(); removeLinkDidChange = false; }
 }
 document.addEventListener('keydown', e => {
@@ -1785,15 +2123,16 @@ document.getElementById('photo-file-input').addEventListener('change', markUnsav
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
   const hasSaved = loadSaved();
-  // Rebuild cards from (possibly restored) people
   Object.keys(nodeEls).forEach(k => delete nodeEls[parseInt(k)]);
   Object.keys(people).forEach(id => buildCard(parseInt(id)));
-  buildGenRows();
-  renderUnlinked();
-  setTimeout(() => drawAllLines(null), 300);
-  if (hasSaved) showToast('Changes loaded from last save', 'ok');
+  rebuildTree();
+  if (hasSaved) setTimeout(() => showToast('Changes loaded from last save', 'ok'), 400);
 });
-window.addEventListener('resize', () => drawAllLines(selectedId?getLineage(selectedId):null));
+window.addEventListener('resize', () => {
+  applyTreeLayout();
+  drawAllLines(selectedId ? getLineage(selectedId) : null);
+  resetZoom();
+});
 </script>
 </body>
 </html>
