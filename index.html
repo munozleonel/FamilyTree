@@ -67,6 +67,15 @@
   }
   .zoom-btn:hover{background:#e8e0d4;}
 
+  #reorganise-btn{
+    background:#5a6e8a;color:#fff;border:none;border-radius:20px;
+    padding:7px 16px;font-size:.72rem;cursor:pointer;font-family:'Lato',sans-serif;
+    letter-spacing:.07em;text-transform:uppercase;transition:background .2s;
+    display:flex;align-items:center;gap:6px;white-space:nowrap;
+  }
+  #reorganise-btn:hover{background:#3d5068;}
+  #reorganise-btn svg{flex-shrink:0;}
+
   /* ── TREE ── */
   #tree-container{
     padding:40px 60px 100px;
@@ -93,7 +102,7 @@
   /* ── CARD ── */
   .person-card{
     display:flex;flex-direction:column;align-items:center;width:88px;
-    cursor:pointer;padding:9px 5px 8px;border-radius:14px;
+    cursor:grab;padding:9px 5px 8px;border-radius:14px;
     background:var(--card-bg);box-shadow:var(--card-shadow);
     border:2px solid transparent;
     transition:box-shadow .2s,border-color .2s,opacity .3s,filter .3s,transform .15s;
@@ -104,6 +113,27 @@
   .person-card.selected-lineage{opacity:1;filter:none;}
   .person-card.selected{border-color:var(--ink);box-shadow:0 0 0 3px rgba(90,58,32,.2),0 6px 24px rgba(90,58,32,.2);transform:translateY(-2px);}
   .person-card.link-target-hover{border-color:#3b7ec8;box-shadow:0 0 0 3px rgba(59,126,200,.25);}
+  .person-card.dragging{
+    cursor:grabbing!important;
+    box-shadow:0 12px 40px rgba(44,36,22,.3);
+    transform:scale(1.06);
+    z-index:500;
+    transition:box-shadow .1s,transform .1s;
+    opacity:0.92;
+  }
+  .person-card.drag-placed{
+    border-color:#7a5c3a;
+    box-shadow:0 0 0 2px rgba(122,92,58,.35);
+  }
+  .card-drag-placeholder{
+    display:inline-block;
+    width:96px;height:4px;
+    background:repeating-linear-gradient(90deg,#c8bfb0 0,#c8bfb0 6px,transparent 6px,transparent 12px);
+    border-radius:3px;
+    margin:0 4px;
+    opacity:0.6;
+    flex-shrink:0;
+  }
 
   /* ── ICON ── */
   .icon-wrap{
@@ -291,6 +321,10 @@
     <button id="save-btn" onclick="saveAll()">
       <svg viewBox="0 0 24 24" width="13" height="13" fill="#fff"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z"/></svg>
       Save
+    </button>
+    <button id="reorganise-btn" onclick="reorganiseLayout()">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="#fff"><path d="M3 3h8v8H3zm0 10h8v8H3zm10-10h8v8h-8zm0 10h8v8h-8zM13 8h2v3h3v2h-3v3h-2v-3h-3v-2h3z"/></svg>
+      Reorganise
     </button>
     <button id="add-person-btn" onclick="openAddPersonModal()">
       <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
@@ -550,10 +584,11 @@ const genLayout = [
 ];
 
 // Runtime overrides
-const dobOverrides   = {};
-const nameOverrides  = {};  // id -> {first, last}
-const photoOverrides = {};  // id -> dataURL
-const unlinkedIds    = [];  // ids not in any gen
+const dobOverrides        = {};
+const nameOverrides       = {};  // id -> {first, last}
+const photoOverrides      = {};  // id -> dataURL
+const cardPositionOverrides = {}; // id -> {left, top} in tree-wrapper px coords
+const unlinkedIds         = [];  // ids not in any gen
 
 // ═══════════════════════════════════════════════════════════════
 // SVG ICONS
@@ -610,6 +645,7 @@ function buildCard(id) {
   });
 
   nodeEls[id] = div;
+  initCardDrag(div, id);
   return div;
 }
 
@@ -851,6 +887,164 @@ function applyTreeLayout() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// CARD DRAG
+// ═══════════════════════════════════════════════════════════════
+let dragState = null;
+// dragState = { id, card, startClientX, startClientY, startLeft, startTop,
+//               origParent, origNextSibling, placeholder, longPressTimer }
+
+const DRAG_THRESHOLD = 5;    // px movement before drag starts
+const LONG_PRESS_MS  = 0;    // start immediately on mousedown (distinguished from click by movement)
+
+function initCardDrag(card, id) {
+  card.addEventListener('mousedown', (e) => {
+    // Only left-button; ignore if a modal/menu is open or in link-pick/remove mode
+    if (e.button !== 0) return;
+    if (linkPickingActive || removeLinkActive) return;
+    if (document.querySelector('.modal-overlay[style*="flex"]')) return;
+    if (spaceHeld) return; // space is for panning
+
+    e.stopPropagation();
+
+    const wrapperRect = document.getElementById('tree-wrapper').getBoundingClientRect();
+
+    // Current position in wrapper coords (accounting for zoom+pan)
+    const cardRect = card.getBoundingClientRect();
+    const left = (cardRect.left - wrapperRect.left) / currentScale;
+    const top  = (cardRect.top  - wrapperRect.top ) / currentScale;
+
+    dragState = {
+      id,
+      card,
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      startLeft:    left,
+      startTop:     top,
+      origParent:      card.parentElement,
+      origNextSibling: card.nextSibling,
+      placeholder:     null,
+      started:         false,
+    };
+  });
+}
+
+function getDragWrapper() {
+  return document.getElementById('tree-wrapper');
+}
+
+document.addEventListener('mousemove', (e) => {
+  if (!dragState) return;
+
+  const dx = e.clientX - dragState.startClientX;
+  const dy = e.clientY - dragState.startClientY;
+
+  if (!dragState.started) {
+    if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+    // Start drag
+    dragState.started = true;
+    startCardDrag(dragState);
+  }
+
+  // Move card (converting screen delta to wrapper coords by dividing by scale)
+  const newLeft = dragState.startLeft + dx / currentScale;
+  const newTop  = dragState.startTop  + dy / currentScale;
+  dragState.card.style.left = newLeft + 'px';
+  dragState.card.style.top  = newTop  + 'px';
+});
+
+document.addEventListener('mouseup', (e) => {
+  if (!dragState) return;
+
+  if (!dragState.started) {
+    // Was a click, not a drag — clean up state without doing anything
+    dragState = null;
+    return;
+  }
+
+  finishCardDrag(dragState);
+  dragState = null;
+});
+
+function startCardDrag(ds) {
+  const { id, card } = ds;
+  const wrapper = getDragWrapper();
+
+  // Insert placeholder in original position
+  const ph = document.createElement('div');
+  ph.className = 'card-drag-placeholder';
+  ds.origParent.insertBefore(ph, ds.origNextSibling);
+  ds.placeholder = ph;
+
+  // Detach card from its parent and attach directly to tree-wrapper
+  card.classList.add('dragging');
+  card.classList.remove('drag-placed');
+  card.style.position = 'absolute';
+  card.style.left     = ds.startLeft + 'px';
+  card.style.top      = ds.startTop  + 'px';
+  card.style.margin   = '0';
+  card.style.zIndex   = '500';
+  wrapper.appendChild(card);
+
+  document.body.style.cursor = 'grabbing';
+}
+
+function finishCardDrag(ds) {
+  const { id, card } = ds;
+  const wrapper = getDragWrapper();
+
+  // Record final position
+  const left = parseFloat(card.style.left);
+  const top  = parseFloat(card.style.top);
+  cardPositionOverrides[id] = { left, top };
+
+  // Keep card on tree-wrapper at absolute position (don't return to couple-unit)
+  card.classList.remove('dragging');
+  card.classList.add('drag-placed');
+  card.style.zIndex = '10';
+
+  // Remove placeholder
+  if (ds.placeholder && ds.placeholder.parentNode) {
+    ds.placeholder.parentNode.removeChild(ds.placeholder);
+  }
+
+  document.body.style.cursor = '';
+  markUnsaved();
+
+  // Redraw lines to follow the new position
+  requestAnimationFrame(() => {
+    drawAllLines(selectedId ? getLineage(selectedId) : null);
+  });
+}
+
+// Apply any saved drag positions after a rebuildTree
+function applyCardPositionOverrides() {
+  const wrapper = getDragWrapper();
+  Object.entries(cardPositionOverrides).forEach(([idStr, pos]) => {
+    const id   = parseInt(idStr);
+    const card = nodeEls[id];
+    if (!card) return;
+
+    // If card is not already on the wrapper at absolute position, move it
+    if (card.parentElement !== wrapper || card.style.position !== 'absolute') {
+      // Insert placeholder where the card currently is
+      if (card.parentElement && card.parentElement !== wrapper) {
+        const ph = document.createElement('div');
+        ph.className = 'card-drag-placeholder';
+        card.parentElement.insertBefore(ph, card.nextSibling);
+      }
+      card.style.position = 'absolute';
+      card.style.margin   = '0';
+      card.style.zIndex   = '10';
+      wrapper.appendChild(card);
+    }
+
+    card.style.left = pos.left + 'px';
+    card.style.top  = pos.top  + 'px';
+    // No highlight on restored positions
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
 // ZOOM & PAN
 // ═══════════════════════════════════════════════════════════════
 let currentScale = 1;
@@ -1013,6 +1207,7 @@ function rebuildTree(lineage) {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       applyTreeLayout();
+      applyCardPositionOverrides();
       drawAllLines(lineage || null);
     });
   });
@@ -1196,6 +1391,9 @@ function showCtxMenu(x, y, sections) {
       const lbl=document.createElement('div'); lbl.className='ctx-label'; lbl.textContent=section.label; ctxMenu.appendChild(lbl);
     }
     section.items.forEach(item => {
+      if (item === 'sep') {
+        const sep=document.createElement('div'); sep.className='ctx-sep'; ctxMenu.appendChild(sep); return;
+      }
       const el=document.createElement('div');
       el.className='ctx-item'+(item.danger?' danger':'');
       el.innerHTML=`${item.icon||''}<span>${item.label}</span>`;
@@ -1245,12 +1443,17 @@ function showDobMenu(id, x, y) {
 function showCardMenu(id, x, y) {
   const nm = getName(id);
   const links = getPersonLinks(id);
+  const isDragged = !!cardPositionOverrides[id];
   const items = [
-    { icon:editIcon(),  label:'Edit Name',      action:()=>openNameModal(id)      },
-    { icon:linkIcon(),  label:'Link to person', action:()=>startLinkPicking(id)   },
+    { icon:editIcon(),  label:'Edit Name',       action:()=>openNameModal(id)      },
+    { icon:linkIcon(),  label:'Link to person',  action:()=>startLinkPicking(id)   },
   ];
   if (links.length > 0) {
     items.push({ icon:unlinkIcon(), label:'Remove a link', danger:true, action:()=>startRemoveLinkMode(id) });
+  }
+  if (isDragged) {
+    items.push('sep');
+    items.push({ icon:resetPosIcon(), label:'Reset position', action:()=>resetCardPosition(id) });
   }
   showCtxMenu(x, y, [{ label:`${nm.first} ${nm.last}`, items }]);
 }
@@ -1261,6 +1464,25 @@ function trashIcon()  { return `<svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 
 function uploadIcon() { return `<svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5z"/></svg>`; }
 function linkIcon()   { return `<svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>`; }
 function unlinkIcon() { return `<svg viewBox="0 0 24 24"><path d="M17 7h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1 0 1.43-.98 2.63-2.31 2.98l1.46 1.46C20.62 15.74 22 14.04 22 12c0-2.76-2.24-5-5-5zm-1 4h-2.19l2 2H16v-2zM2 4.27l3.11 3.11C3.29 8.12 2 9.91 2 12c0 2.76 2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1 0-1.59 1.21-2.9 2.76-3.07L8.73 11H8v2h2.73l2 2H8v1.9h4.46l3.27 3.27 1.27-1.27L3.27 3 2 4.27z"/></svg>`; }
+function resetPosIcon() { return `<svg viewBox="0 0 24 24"><path d="M12 5V2L8 6l4 4V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>`; }
+
+function resetCardPosition(id) {
+  delete cardPositionOverrides[id];
+  const card = nodeEls[id];
+  if (card) {
+    card.classList.remove('drag-placed','dragging');
+    card.style.position = '';
+    card.style.left     = '';
+    card.style.top      = '';
+    card.style.margin   = '';
+    card.style.zIndex   = '';
+  }
+  // Full rebuild so it returns to its gen-row position
+  Object.keys(nodeEls).forEach(k => delete nodeEls[parseInt(k)]);
+  Object.keys(people).forEach(pid => buildCard(parseInt(pid)));
+  rebuildTree();
+  markUnsaved();
+}
 
 // ═══════════════════════════════════════════════════════════════
 // PHOTO UPLOAD
@@ -1480,25 +1702,60 @@ function applyLink(srcId, tgtId, type) {
     placeCoupleInLayout(srcId, tgtId);
 
   } else if (type === 'parent') {
-    // src is a parent → tgt becomes their child
+    // src is a parent of tgt
     if (src.gender === 'M') { if (!tgt.father) tgt.father = srcId; }
     else                    { if (!tgt.mother) tgt.mother = srcId; }
+
+    // Ensure the parent (srcId) is in a generation first
+    ensureInGen(srcId, tgtId, 'above');
+    // Now add tgt as a child under src's unit
     addChildToParentUnit(srcId, tgtId);
 
   } else if (type === 'child') {
-    // src is a child → tgt becomes their parent
+    // src is a child of tgt
     if (tgt.gender === 'M') { if (!src.father) src.father = tgtId; }
     else                    { if (!src.mother) src.mother = tgtId; }
+
+    // Ensure the parent (tgtId) is in a generation first
+    ensureInGen(tgtId, srcId, 'above');
+    // Now add src as a child under tgt's unit
     addChildToParentUnit(tgtId, srcId);
   }
 
-  // Remove srcId from unlinked if present
-  const ui = unlinkedIds.indexOf(srcId);
-  if (ui !== -1) unlinkedIds.splice(ui, 1);
-  const ui2 = unlinkedIds.indexOf(tgtId);
-  if (ui2 !== -1) unlinkedIds.splice(ui2, 1);
+  // Remove both from unlinked if present
+  [srcId, tgtId].forEach(id => {
+    const ui = unlinkedIds.indexOf(id);
+    if (ui !== -1) unlinkedIds.splice(ui, 1);
+  });
 
   finishLinkPicking();
+}
+
+// Ensure `id` is placed in a generation. If it has no gen yet, place it one
+// generation ABOVE `otherId` (or in gen 0 if otherId also has no gen).
+function ensureInGen(id, otherId, relation) {
+  if (findGenOfId(id) !== -1) return; // already placed
+  const otherGen = findGenOfId(otherId);
+  if (relation === 'above') {
+    // id should be one gen above otherId
+    const targetGen = otherGen > 0 ? otherGen - 1 : 0;
+    placeInGenNoRemove(id, targetGen);
+  } else {
+    // id should be one gen below otherId
+    const targetGen = otherGen !== -1 ? otherGen + 1 : 1;
+    placeInGenNoRemove(id, targetGen);
+  }
+}
+
+// Like placeInGen but does NOT remove from current gen (used when we know it's unlinked)
+function placeInGenNoRemove(id, genIdx) {
+  while (genLayout.length <= genIdx) {
+    genLayout.push({ label: `Generation ${toRoman(genLayout.length + 1)}`, units: [] });
+  }
+  // Already there? Skip
+  for (const unit of genLayout[genIdx].units)
+    if (unit.ids.includes(id)) return;
+  genLayout[genIdx].units.push({ ids: [id] });
 }
 
 // ── Layout helpers ─────────────────────────────────────────────
@@ -1556,12 +1813,21 @@ function addChildToParentUnit(parentId, childId) {
       if (unit.ids.includes(parentId)) {
         if (!unit.children) unit.children = [];
         if (!unit.children.includes(childId)) unit.children.push(childId);
-        // Place childId in the next generation
+        // Place childId in the next generation (remove from current position first)
         placeInGen(childId, gi + 1);
         return;
       }
     }
   }
+  // Fallback: parent not found in any gen — place parent in gen 0 and child in gen 1
+  console.warn('addChildToParentUnit: parentId', parentId, 'not found in any gen');
+  placeInGenNoRemove(parentId, 0);
+  const unit = genLayout[0].units.find(u => u.ids.includes(parentId));
+  if (unit) {
+    if (!unit.children) unit.children = [];
+    if (!unit.children.includes(childId)) unit.children.push(childId);
+  }
+  placeInGen(childId, 1);
 }
 
 function placeInGen(id, genIdx) {
@@ -2018,15 +2284,79 @@ function markUnsaved() {
   document.getElementById('save-btn').classList.add('unsaved');
 }
 
+// Snap each manually-dragged card's vertical position to the nearest generation row
+function snapDraggedCardsToGenerations() {
+  if (!Object.keys(cardPositionOverrides).length) return;
+
+  const wrapper = document.getElementById('tree-wrapper');
+  const wrapperRect = wrapper.getBoundingClientRect();
+
+  // Collect the top offset of every generation-row in wrapper coordinates
+  const genRows = Array.from(
+    document.querySelectorAll('#tree-root .gen-block .generation-row')
+  );
+
+  // Build list of {top} for each row in wrapper-local (unscaled) coords
+  // Using offsetTop walkup (since cards use unscaled coords)
+  function getOffsetTopInWrapper(el) {
+    let top = 0, cur = el;
+    while (cur && cur !== wrapper) { top += cur.offsetTop; cur = cur.offsetParent; }
+    return top;
+  }
+
+  const rowTops = genRows.map(row => ({
+    row,
+    top:    getOffsetTopInWrapper(row),
+    height: row.offsetHeight || 120,
+  }));
+
+  if (!rowTops.length) return;
+
+  // For each dragged card, snap its top to the nearest row's top
+  Object.entries(cardPositionOverrides).forEach(([idStr, pos]) => {
+    const id   = parseInt(idStr);
+    const card = nodeEls[id];
+    if (!card) return;
+
+    const cardTop    = pos.top;
+    const cardCentreY = cardTop + (card.offsetHeight || 120) / 2;
+
+    // Find the row whose centre Y is closest
+    let bestRow = rowTops[0], bestDist = Infinity;
+    rowTops.forEach(rt => {
+      const rowCentreY = rt.top + rt.height / 2;
+      const dist = Math.abs(cardCentreY - rowCentreY);
+      if (dist < bestDist) { bestDist = dist; bestRow = rt; }
+    });
+
+    // Snap: align card's top to the row's top
+    const snappedTop = bestRow.top;
+    if (snappedTop !== pos.top) {
+      cardPositionOverrides[id] = { left: pos.left, top: snappedTop };
+      if (card) card.style.top = snappedTop + 'px';
+    }
+  });
+
+  // Redraw lines after snapping
+  requestAnimationFrame(() => drawAllLines(selectedId ? getLineage(selectedId) : null));
+}
+
 function saveAll() {
+  // Snap dragged cards to their nearest generation row before saving
+  snapDraggedCardsToGenerations();
+
+  // Remove the drag-placed highlight from all cards
+  Object.values(nodeEls).forEach(el => el.classList.remove('drag-placed'));
+
   const snapshot = {
-    people:        JSON.parse(JSON.stringify(people)),
-    genLayout:     JSON.parse(JSON.stringify(genLayout)),
+    people:               JSON.parse(JSON.stringify(people)),
+    genLayout:            JSON.parse(JSON.stringify(genLayout)),
     nextId,
-    dobOverrides:  JSON.parse(JSON.stringify(dobOverrides)),
-    nameOverrides: JSON.parse(JSON.stringify(nameOverrides)),
-    photoOverrides: JSON.parse(JSON.stringify(photoOverrides)),
-    unlinkedIds:   [...unlinkedIds],
+    dobOverrides:         JSON.parse(JSON.stringify(dobOverrides)),
+    nameOverrides:        JSON.parse(JSON.stringify(nameOverrides)),
+    photoOverrides:       JSON.parse(JSON.stringify(photoOverrides)),
+    cardPositionOverrides: JSON.parse(JSON.stringify(cardPositionOverrides)),
+    unlinkedIds:          [...unlinkedIds],
   };
   // Try saving with photos first; if quota exceeded, try without
   const tryStore = (data) => {
@@ -2083,6 +2413,7 @@ function loadSaved() {
     coerceKeys(s.dobOverrides,   dobOverrides);
     coerceKeys(s.nameOverrides,  nameOverrides);
     coerceKeys(s.photoOverrides, photoOverrides);
+    coerceKeys(s.cardPositionOverrides, cardPositionOverrides);
 
     // Restore unlinked
     unlinkedIds.length = 0;
@@ -2117,6 +2448,136 @@ function showToast(msg, type) {
 // showIconMenu photo-delete → calls markUnsaved() directly
 // photo-file-input change → listener below
 document.getElementById('photo-file-input').addEventListener('change', markUnsaved);
+
+// ═══════════════════════════════════════════════════════════════
+// REORGANISE LAYOUT
+// Rebuilds genLayout from scratch based purely on people data,
+// then rebuilds and redraws the tree.
+// ═══════════════════════════════════════════════════════════════
+function reorganiseLayout() {
+  const btn = document.getElementById('reorganise-btn');
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+
+  // ── Step 1: compute generation depth for every person ──────────
+  // Depth = max(father depth, mother depth) + 1
+  // People with no parents get depth 0.
+  const depth = {};
+  const allIds = Object.keys(people).map(Number);
+
+  function getDepth(id) {
+    if (depth[id] !== undefined) return depth[id];
+    depth[id] = -1; // mark in-progress (cycle guard)
+    const p = people[id];
+    if (!p) { depth[id] = 0; return 0; }
+    const fd = (p.father && people[p.father]) ? getDepth(p.father) : -1;
+    const md = (p.mother && people[p.mother]) ? getDepth(p.mother) : -1;
+    depth[id] = Math.max(fd, md) + 1;
+    return depth[id];
+  }
+
+  allIds.forEach(id => getDepth(id));
+
+  // ── Step 2: collect existing couple pairings ───────────────────
+  // Two people are a "couple" if they are spouses AND share at least one child,
+  // OR if they appear as a couple in the current genLayout (belt-and-suspenders).
+  const coupleSet = new Set(); // "minId,maxId" strings
+  const coupleMap = {};        // id → partnerId
+
+  // From people.spouse data
+  allIds.forEach(id => {
+    const p = people[id];
+    (p.spouse || []).forEach(sid => {
+      if (!people[sid]) return;
+      const key = Math.min(id, sid) + ',' + Math.max(id, sid);
+      coupleSet.add(key);
+      coupleMap[id]  = coupleMap[id]  || sid;
+      coupleMap[sid] = coupleMap[sid] || id;
+    });
+  });
+
+  // ── Step 3: build units per generation ─────────────────────────
+  // Group people by depth, then pair couples together.
+  const byDepth = {};
+  allIds.forEach(id => {
+    const d = depth[id] ?? 0;
+    if (!byDepth[d]) byDepth[d] = [];
+    byDepth[d].push(id);
+  });
+
+  const maxDepth = Math.max(...Object.keys(byDepth).map(Number));
+  const newGenLayout = [];
+
+  for (let d = 0; d <= maxDepth; d++) {
+    const idsAtDepth = byDepth[d] || [];
+    const placed = new Set();
+    const units  = [];
+
+    // Place couples first (both members must be at same depth)
+    idsAtDepth.forEach(id => {
+      if (placed.has(id)) return;
+      const partner = coupleMap[id];
+      if (partner && idsAtDepth.includes(partner) && !placed.has(partner)) {
+        // Determine children: any person whose father or mother is id or partner
+        const children = allIds.filter(cid =>
+          (people[cid].father === id || people[cid].mother === id ||
+           people[cid].father === partner || people[cid].mother === partner) &&
+          (depth[cid] ?? 0) === d + 1
+        );
+        units.push({ ids: [id, partner], children: [...new Set(children)] });
+        placed.add(id);
+        placed.add(partner);
+      }
+    });
+
+    // Place remaining singles
+    idsAtDepth.forEach(id => {
+      if (placed.has(id)) return;
+      // Children of this solo person at depth+1
+      const children = allIds.filter(cid =>
+        (people[cid].father === id || people[cid].mother === id) &&
+        (depth[cid] ?? 0) === d + 1
+      );
+      units.push({ ids: [id], children: [...new Set(children)] });
+      placed.add(id);
+    });
+
+    // Sort units so couples with shared children appear in a sensible order
+    // (by the minimum id in the unit — gives stable, repeatable order)
+    units.sort((a, b) => Math.min(...a.ids) - Math.min(...b.ids));
+
+    const genNum = d + 1;
+    newGenLayout.push({ label: `Generation ${toRoman(genNum)}`, units });
+  }
+
+  // ── Step 4: handle unlinked people ─────────────────────────────
+  // People with no parents, no children, and no spouse stay unlinked.
+  // But if they're already in a gen (because they were manually placed), keep them.
+  const placedIds = new Set(newGenLayout.flatMap(g => g.units.flatMap(u => u.ids)));
+  unlinkedIds.length = 0;
+  allIds.forEach(id => {
+    if (!placedIds.has(id)) unlinkedIds.push(id);
+  });
+
+  // ── Step 5: replace genLayout ──────────────────────────────────
+  genLayout.length = 0;
+  newGenLayout.forEach(g => genLayout.push(g));
+
+  // Clear any manual drag positions — reorganise resets everything
+  Object.keys(cardPositionOverrides).forEach(k => delete cardPositionOverrides[k]);
+
+  // ── Step 6: rebuild and redraw ─────────────────────────────────
+  Object.keys(nodeEls).forEach(k => delete nodeEls[parseInt(k)]);
+  Object.keys(people).forEach(id => buildCard(parseInt(id)));
+  rebuildTree();
+  markUnsaved();
+  showToast('Tree reorganised', 'ok');
+
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }, 600);
+}
 
 // ═══════════════════════════════════════════════════════════════
 // INIT
